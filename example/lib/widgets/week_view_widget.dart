@@ -6,8 +6,15 @@ import '../pages/event_details_page.dart';
 class WeekViewWidget extends StatelessWidget {
   final GlobalKey<WeekViewState>? state;
   final double? width;
+  final double heightPerMinute = 1;
 
   const WeekViewWidget({super.key, this.state, this.width});
+
+  double _calculateScrollOffset() {
+    final now = TimeOfDay.now();
+    final minutesSinceStart = (now.hour - 1) * 60 + now.minute;
+    return minutesSinceStart * heightPerMinute;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +23,9 @@ class WeekViewWidget extends StatelessWidget {
       width: width,
       showLiveTimeLineInAllDays: true,
       timeLineWidth: 65,
+      keepScrollOffset: true,
+      heightPerMinute: heightPerMinute,
+      scrollOffset: _calculateScrollOffset(),
       liveTimeIndicatorSettings: LiveTimeIndicatorSettings(
         color: Colors.redAccent,
         showTime: true,

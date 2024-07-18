@@ -218,6 +218,7 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
 class _InternalWeekViewPageState<T extends Object?>
     extends State<InternalWeekViewPage<T>> {
   late ScrollController scrollController;
+  bool isScrolledToTop = false;
 
   @override
   void initState() {
@@ -226,6 +227,18 @@ class _InternalWeekViewPageState<T extends Object?>
       initialScrollOffset: widget.lastScrollOffset,
     );
     scrollController.addListener(_scrollControllerListener);
+    widget.weekViewScrollController.addListener(() {
+      updateScrolledToTop(widget.weekViewScrollController);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      setState(() {
+        if (scrollController.hasClients) {
+          updateScrolledToTop(scrollController);
+        } else {
+          updateScrolledToTop(widget.weekViewScrollController);
+        }
+      });
+    });
   }
 
   @override
@@ -236,8 +249,18 @@ class _InternalWeekViewPageState<T extends Object?>
     super.dispose();
   }
 
+  void updateScrolledToTop(ScrollController sc) {
+    final isPositionZero = sc.position.pixels == 0;
+    if (isPositionZero != isScrolledToTop) {
+      setState(() {
+        isScrolledToTop = isPositionZero;
+      });
+    }
+  }
+
   void _scrollControllerListener() {
     widget.scrollListener(scrollController);
+    updateScrolledToTop(scrollController);
   }
 
   @override
@@ -276,10 +299,6 @@ class _InternalWeekViewPageState<T extends Object?>
               ],
             ),
           ),
-          Divider(
-            thickness: 1,
-            height: 1,
-          ),
           SizedBox(
             width: widget.width,
             child: Container(
@@ -287,9 +306,18 @@ class _InternalWeekViewPageState<T extends Object?>
                 border: Border(
                   bottom: BorderSide(
                     color: widget.hourIndicatorSettings.color,
-                    width: 2,
+                    width: 1,
                   ),
                 ),
+                boxShadow: [
+                  if (!isScrolledToTop)
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      spreadRadius: 1,
+                      blurRadius: 1,
+                      offset: Offset(0, 1), // changes position of shadow
+                    ),
+                ],
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
