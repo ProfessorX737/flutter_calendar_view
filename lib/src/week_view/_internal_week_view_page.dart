@@ -226,18 +226,20 @@ class _InternalWeekViewPageState<T extends Object?>
   void initState() {
     super.initState();
     widget.pageScrollController.addListener(_scrollControllerListener);
-    widget.weekViewScrollController.addListener(() {
-      updateScrolledToTop(widget.weekViewScrollController);
-    });
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       setState(() {
-        if (widget.pageScrollController.hasClients) {
-          updateScrolledToTop(widget.pageScrollController);
-        } else {
-          updateScrolledToTop(widget.weekViewScrollController);
-        }
+        updateScrolledToTop(widget.pageScrollController);
       });
     });
+  }
+
+  @override
+  void didUpdateWidget(InternalWeekViewPage<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.pageScrollController != widget.pageScrollController) {
+      oldWidget.pageScrollController.removeListener(_scrollControllerListener);
+      widget.pageScrollController.addListener(_scrollControllerListener);
+    }
   }
 
   @override
