@@ -127,6 +127,8 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
 
   final ScrollController weekViewScrollController;
 
+  final ScrollController pageScrollController;
+
   /// First hour displayed in the layout
   final int startHour;
 
@@ -206,6 +208,7 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
     required this.fullDayHeaderTextConfig,
     required this.scrollListener,
     required this.weekViewScrollController,
+    required this.pageScrollController,
     this.lastScrollOffset = 0.0,
     this.keepScrollOffset = false,
   }) : super(key: key);
@@ -217,23 +220,19 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
 
 class _InternalWeekViewPageState<T extends Object?>
     extends State<InternalWeekViewPage<T>> {
-  late ScrollController scrollController;
   bool isScrolledToTop = false;
 
   @override
   void initState() {
     super.initState();
-    scrollController = ScrollController(
-      initialScrollOffset: widget.lastScrollOffset,
-    );
-    scrollController.addListener(_scrollControllerListener);
+    widget.pageScrollController.addListener(_scrollControllerListener);
     widget.weekViewScrollController.addListener(() {
       updateScrolledToTop(widget.weekViewScrollController);
     });
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       setState(() {
-        if (scrollController.hasClients) {
-          updateScrolledToTop(scrollController);
+        if (widget.pageScrollController.hasClients) {
+          updateScrolledToTop(widget.pageScrollController);
         } else {
           updateScrolledToTop(widget.weekViewScrollController);
         }
@@ -243,7 +242,7 @@ class _InternalWeekViewPageState<T extends Object?>
 
   @override
   void dispose() {
-    scrollController
+    widget.pageScrollController
       ..removeListener(_scrollControllerListener)
       ..dispose();
     super.dispose();
@@ -259,8 +258,8 @@ class _InternalWeekViewPageState<T extends Object?>
   }
 
   void _scrollControllerListener() {
-    widget.scrollListener(scrollController);
-    updateScrolledToTop(scrollController);
+    widget.scrollListener(widget.pageScrollController);
+    updateScrolledToTop(widget.pageScrollController);
   }
 
   @override
@@ -365,7 +364,7 @@ class _InternalWeekViewPageState<T extends Object?>
           Expanded(
             child: SingleChildScrollView(
               controller: widget.keepScrollOffset
-                  ? scrollController
+                  ? widget.pageScrollController
                   : widget.weekViewScrollController,
               child: SizedBox(
                 height: widget.height,

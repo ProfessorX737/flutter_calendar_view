@@ -373,6 +373,10 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
 
   ScrollController get scrollController => _scrollController;
 
+  ScrollController? _currentWeekScrollController;
+  ScrollController? get currentWeekScrollController =>
+      _currentWeekScrollController;
+
   late List<WeekDays> _weekDays;
 
   late int _startHour;
@@ -503,7 +507,12 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                         final dates = DateTime(_minDate.year, _minDate.month,
                                 _minDate.day + (index * DateTime.daysPerWeek))
                             .datesOfWeek(start: widget.startDay);
-
+                        final isCurrentWeek = index == _currentIndex;
+                        final pageScrollController = ScrollController(
+                            initialScrollOffset: _lastScrollOffset);
+                        if (isCurrentWeek) {
+                          _currentWeekScrollController = pageScrollController;
+                        }
                         return ValueListenableBuilder(
                           valueListenable: _scrollConfiguration,
                           builder: (_, __, ___) => InternalWeekViewPage<T>(
@@ -542,6 +551,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                             controller: controller,
                             hourHeight: _hourHeight,
                             weekViewScrollController: _scrollController,
+                            pageScrollController: pageScrollController,
                             eventArranger: _eventArranger,
                             weekDays: _weekDays,
                             minuteSlotSize: widget.minuteSlotSize,
