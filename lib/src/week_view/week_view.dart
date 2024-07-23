@@ -512,7 +512,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                             .datesOfWeek(start: widget.startDay);
                         final isCurrentWeek = index == _currentIndex;
                         final key = ValueKey(
-                            _hourHeight.toString() + dates[0].toString());
+                            '${_width}_${_hourHeight.toString()}_${dates[0].toString()}');
                         if (!_pageCache.containsKey(key)) {
                           _pageCache.remove(key);
                           _pageCache[key] = ValueListenableBuilder(
