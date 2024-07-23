@@ -11,7 +11,7 @@ import 'week_view_widget.dart';
 class CalendarViews extends StatelessWidget {
   final CalendarView view;
 
-  const CalendarViews({super.key, this.view = CalendarView.month});
+  const CalendarViews({super.key, this.view = CalendarView.week});
 
   final _breakPoint = 490.0;
 

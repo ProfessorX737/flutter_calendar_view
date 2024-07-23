@@ -13,6 +13,7 @@ import '../event_controller.dart';
 import '../modals.dart';
 import '../painters.dart';
 import '../typedefs.dart';
+import 'full_day_event_header.dart';
 
 /// A single page for week view.
 class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
@@ -220,17 +221,10 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
 
 class _InternalWeekViewPageState<T extends Object?>
     extends State<InternalWeekViewPage<T>> {
-  bool isScrolledToTop = false;
-
   @override
   void initState() {
     super.initState();
     widget.pageScrollController.addListener(_scrollControllerListener);
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      setState(() {
-        updateScrolledToTop(widget.pageScrollController);
-      });
-    });
   }
 
   @override
@@ -250,18 +244,8 @@ class _InternalWeekViewPageState<T extends Object?>
     super.dispose();
   }
 
-  void updateScrolledToTop(ScrollController sc) {
-    final isPositionZero = sc.position.pixels == 0;
-    if (isPositionZero != isScrolledToTop) {
-      setState(() {
-        isScrolledToTop = isPositionZero;
-      });
-    }
-  }
-
   void _scrollControllerListener() {
     widget.scrollListener(widget.pageScrollController);
-    updateScrolledToTop(widget.pageScrollController);
   }
 
   @override
@@ -300,68 +284,17 @@ class _InternalWeekViewPageState<T extends Object?>
               ],
             ),
           ),
-          SizedBox(
+          FullDayEventHeader<T>(
             width: widget.width,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: widget.hourIndicatorSettings.color,
-                    width: 1,
-                  ),
-                ),
-                boxShadow: [
-                  if (!isScrolledToTop)
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      spreadRadius: 1,
-                      blurRadius: 1,
-                      offset: Offset(0, 1), // changes position of shadow
-                    ),
-                ],
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: widget.timeLineWidth +
-                        widget.hourIndicatorSettings.offset,
-                    child: widget.fullDayHeaderTitle.isNotEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 2,
-                              horizontal: 1,
-                            ),
-                            child: Text(
-                              widget.fullDayHeaderTitle,
-                              textAlign:
-                                  widget.fullDayHeaderTextConfig.textAlign,
-                              maxLines: widget.fullDayHeaderTextConfig.maxLines,
-                              overflow:
-                                  widget.fullDayHeaderTextConfig.textOverflow,
-                            ),
-                          )
-                        : SizedBox.shrink(),
-                  ),
-                  ...List.generate(
-                    filteredDates.length,
-                    (index) {
-                      final fullDayEventList = widget.controller
-                          .getFullDayEvent(filteredDates[index]);
-                      return Container(
-                        width: widget.weekTitleWidth,
-                        child: fullDayEventList.isEmpty
-                            ? null
-                            : widget.fullDayEventBuilder.call(
-                                fullDayEventList,
-                                widget.dates[index],
-                              ),
-                      );
-                    },
-                  )
-                ],
-              ),
-            ),
+            timeLineWidth: widget.timeLineWidth,
+            hourIndicatorSettings: widget.hourIndicatorSettings,
+            fullDayHeaderTitle: widget.fullDayHeaderTitle,
+            fullDayHeaderTextConfig: widget.fullDayHeaderTextConfig,
+            filteredDates: filteredDates,
+            controller: widget.controller,
+            fullDayEventBuilder: widget.fullDayEventBuilder,
+            weekTitleWidth: widget.weekTitleWidth,
+            pageScrollController: widget.pageScrollController,
           ),
           Expanded(
             child: SingleChildScrollView(
