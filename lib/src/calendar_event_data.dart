@@ -44,6 +44,8 @@ class CalendarEventData<T extends Object?> {
   /// Define style of description.
   final TextStyle? descriptionStyle;
 
+  final bool isDragging;
+
   /// {@macro calendar_event_data_doc}
   CalendarEventData({
     required this.title,
@@ -56,6 +58,7 @@ class CalendarEventData<T extends Object?> {
     this.titleStyle,
     this.descriptionStyle,
     DateTime? endDate,
+    this.isDragging = false,
   })  : _endDate = endDate?.withoutTime,
         date = date.withoutTime;
 
@@ -101,6 +104,7 @@ class CalendarEventData<T extends Object?> {
         "title": title,
         "description": description,
         "endDate": endDate,
+        "isDragging": isDragging,
       };
 
   /// Returns new object of [CalendarEventData] with the updated values defined
@@ -117,6 +121,7 @@ class CalendarEventData<T extends Object?> {
     TextStyle? descriptionStyle,
     DateTime? endDate,
     DateTime? date,
+    bool? isDragging,
   }) {
     return CalendarEventData(
       title: title ?? this.title,
@@ -129,6 +134,7 @@ class CalendarEventData<T extends Object?> {
       endDate: endDate ?? this.endDate,
       event: event ?? this.event,
       titleStyle: titleStyle ?? this.titleStyle,
+      isDragging: isDragging ?? this.isDragging,
     );
   }
 
@@ -154,7 +160,8 @@ class CalendarEventData<T extends Object?> {
         color == other.color &&
         titleStyle == other.titleStyle &&
         descriptionStyle == other.descriptionStyle &&
-        description == other.description;
+        description == other.description &&
+        isDragging == other.isDragging;
   }
 
   @override
@@ -164,7 +171,8 @@ class CalendarEventData<T extends Object?> {
       titleStyle.hashCode ^
       color.hashCode ^
       title.hashCode ^
-      date.hashCode;
+      date.hashCode ^
+      isDragging.hashCode;
 }
 
 /// {@template calendar_event_data_doc}
