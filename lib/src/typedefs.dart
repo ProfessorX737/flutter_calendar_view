@@ -93,3 +93,10 @@ typedef CustomHourLinePainter = CustomPainter Function(
 );
 
 typedef TestPredicate<T> = bool Function(T element);
+
+typedef DateEventsBuilder<T extends Object?> = Widget Function({
+  required DateTime date,
+  required double width,
+  required double height,
+  required double heightPerMinute,
+});

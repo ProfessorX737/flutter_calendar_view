@@ -163,6 +163,8 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
   /// Flag to keep scrollOffset of pages on page change
   final bool keepScrollOffset;
 
+  final DateEventsBuilder<T> dateEventsBuilder;
+
   /// A single page for week view.
   const InternalWeekViewPage({
     Key? key,
@@ -212,6 +214,7 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
     required this.pageScrollController,
     this.lastScrollOffset = 0.0,
     this.keepScrollOffset = false,
+    required this.dateEventsBuilder,
   }) : super(key: key);
 
   @override
@@ -389,25 +392,31 @@ class _InternalWeekViewPageState<T extends Object?>
                                       date: widget.dates[index],
                                       minuteSlotSize: widget.minuteSlotSize,
                                     ),
-                                    EventGenerator<T>(
+                                    widget.dateEventsBuilder(
+                                      width: widget.weekTitleWidth,
                                       height: widget.height,
                                       date: filteredDates[index],
-                                      onTileTap: widget.onTileTap,
-                                      onTileLongTap: widget.onTileLongTap,
-                                      onTileDoubleTap: widget.onTileDoubleTap,
-                                      width: widget.weekTitleWidth,
-                                      eventArranger: widget.eventArranger,
-                                      eventTileBuilder: widget.eventTileBuilder,
-                                      scrollNotifier:
-                                          widget.scrollConfiguration,
-                                      startHour: widget.startHour,
-                                      events: widget.controller.getEventsOnDay(
-                                        filteredDates[index],
-                                        includeFullDayEvents: false,
-                                      ),
                                       heightPerMinute: widget.heightPerMinute,
-                                      endHour: widget.endHour,
                                     ),
+                                    // EventGenerator<T>(
+                                    //   height: widget.height,
+                                    //   date: filteredDates[index],
+                                    //   onTileTap: widget.onTileTap,
+                                    //   onTileLongTap: widget.onTileLongTap,
+                                    //   onTileDoubleTap: widget.onTileDoubleTap,
+                                    //   width: widget.weekTitleWidth,
+                                    //   eventArranger: widget.eventArranger,
+                                    //   eventTileBuilder: widget.eventTileBuilder,
+                                    //   scrollNotifier:
+                                    //       widget.scrollConfiguration,
+                                    //   startHour: widget.startHour,
+                                    //   events: widget.controller.getEventsOnDay(
+                                    //     filteredDates[index],
+                                    //     includeFullDayEvents: false,
+                                    //   ),
+                                    //   heightPerMinute: widget.heightPerMinute,
+                                    //   endHour: widget.endHour,
+                                    // ),
                                   ],
                                 ),
                               ),

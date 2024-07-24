@@ -241,9 +241,12 @@ class WeekView<T extends Object?> extends StatefulWidget {
   /// Flag to keep scrollOffset of pages on page change
   final bool keepScrollOffset;
 
+  final DateEventsBuilder<T> dateEventsBuilder;
+
   /// Main widget for week view.
   const WeekView({
     Key? key,
+    required this.dateEventsBuilder,
     this.controller,
     this.eventTileBuilder,
     this.pageTransitionDuration = const Duration(milliseconds: 300),
@@ -530,6 +533,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                                       dates[0].toString()),
                                   height: _height,
                                   width: _width,
+                                  dateEventsBuilder: widget.dateEventsBuilder,
                                   weekTitleWidth: _weekTitleWidth,
                                   weekTitleHeight: widget.weekTitleHeight,
                                   weekDayBuilder: _weekDayBuilder,
