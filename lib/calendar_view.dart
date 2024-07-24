@@ -20,3 +20,4 @@ export './src/style/header_style.dart';
 export './src/typedefs.dart';
 export './src/week_view/week_view.dart';
 export './src/components/common_components.dart';
+export './src/constants.dart';
