@@ -100,3 +100,12 @@ typedef DateEventsBuilder<T extends Object?> = Widget Function({
   required double height,
   required double heightPerMinute,
 });
+
+typedef WeekDecorationBuilder = Widget Function({
+  required double widthOffset,
+  required double widthPerDay,
+  required double heightPerMinute,
+  required double width,
+  required double height,
+  required List<DateTime> dates,
+});

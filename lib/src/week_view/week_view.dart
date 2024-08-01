@@ -243,10 +243,13 @@ class WeekView<T extends Object?> extends StatefulWidget {
 
   final DateEventsBuilder<T> dateEventsBuilder;
 
+  final WeekDecorationBuilder weekDecorationBuilder;
+
   /// Main widget for week view.
   const WeekView({
     Key? key,
     required this.dateEventsBuilder,
+    required this.weekDecorationBuilder,
     this.controller,
     this.eventTileBuilder,
     this.pageTransitionDuration = const Duration(milliseconds: 300),
@@ -534,6 +537,8 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                                   height: _height,
                                   width: _width,
                                   dateEventsBuilder: widget.dateEventsBuilder,
+                                  weekDecorationBuilder:
+                                      widget.weekDecorationBuilder,
                                   weekTitleWidth: _weekTitleWidth,
                                   weekTitleHeight: widget.weekTitleHeight,
                                   weekDayBuilder: _weekDayBuilder,
