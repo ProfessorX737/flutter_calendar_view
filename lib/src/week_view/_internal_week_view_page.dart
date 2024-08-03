@@ -167,6 +167,8 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
 
   final ScrollViewBuilder scrollViewBuilder;
 
+  final WeekDecorationBuilder weekDecorationBuilder;
+
   /// A single page for week view.
   const InternalWeekViewPage({
     Key? key,
@@ -218,6 +220,7 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
     this.keepScrollOffset = false,
     required this.dateEventsBuilder,
     required this.scrollViewBuilder,
+    required this.weekDecorationBuilder,
   }) : super(key: key);
 
   @override
@@ -453,6 +456,15 @@ class _InternalWeekViewPageState<T extends Object?>
                         startHour: widget.startHour,
                         endHour: widget.endHour,
                       ),
+                    widget.weekDecorationBuilder(
+                      widthOffset: widget.timeLineWidth +
+                          widget.hourIndicatorSettings.offset,
+                      widthPerDay: widget.weekTitleWidth,
+                      heightPerMinute: widget.heightPerMinute,
+                      width: widget.width,
+                      height: widget.height,
+                      dates: filteredDates,
+                    ),
                   ],
                 ),
               ),

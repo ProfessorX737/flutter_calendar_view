@@ -84,6 +84,24 @@ class _WeekViewWidgetState extends State<WeekViewWidget> {
               width: width,
             );
           },
+          weekDecorationBuilder: ({
+            required double widthOffset,
+            required double widthPerDay,
+            required double heightPerMinute,
+            required double width,
+            required double height,
+            required List<DateTime> dates,
+          }) {
+            return Positioned(
+              top: 0,
+              left: widthOffset,
+              child: Container(
+                width: widthPerDay,
+                height: heightPerMinute * 60,
+                color: Colors.redAccent,
+              ),
+            );
+          },
           scrollViewBuilder: (
               {required Widget child, required ScrollController controller}) {
             return ValueListenableBuilder<bool>(
