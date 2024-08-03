@@ -100,3 +100,6 @@ typedef DateEventsBuilder<T extends Object?> = Widget Function({
   required double height,
   required double heightPerMinute,
 });
+
+typedef ScrollViewBuilder = Widget Function(
+    {required Widget child, required ScrollController controller});

@@ -3,12 +3,21 @@ import 'package:flutter/material.dart';
 
 import '../pages/event_details_page.dart';
 
-class WeekViewWidget extends StatelessWidget {
-  final GlobalKey<WeekViewState>? state;
+class WeekViewWidget extends StatefulWidget {
   final double? width;
-  final double heightPerMinute = 1;
 
-  const WeekViewWidget({super.key, this.state, this.width});
+  const WeekViewWidget({super.key, this.width});
+
+  @override
+  State<WeekViewWidget> createState() => _WeekViewWidgetState();
+}
+
+class _WeekViewWidgetState extends State<WeekViewWidget> {
+  double heightPerMinute = 1;
+  final Map<int, Offset> _pointerPositions = {};
+  final ValueNotifier<bool> canScrollNotifier = ValueNotifier(true);
+  double initialDistance = 0;
+  double initialHeightPerMinute = 1;
 
   double _calculateScrollOffset() {
     final now = TimeOfDay.now();
@@ -18,44 +27,96 @@ class WeekViewWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WeekView(
-      key: state,
-      width: width,
-      showLiveTimeLineInAllDays: true,
-      timeLineWidth: 65,
-      keepScrollOffset: true,
-      heightPerMinute: heightPerMinute,
-      dateEventsBuilder: (
-          {required DateTime date,
-          required double height,
-          required double heightPerMinute,
-          required double width}) {
-        return DateEvents(
-          date: date,
-          height: height,
+    return Listener(
+        onPointerDown: (details) {
+          print('pointer down ${details.pointer}');
+          _pointerPositions[details.pointer] = details.position;
+          if (_pointerPositions.length > 1) {
+            setState(() {
+              canScrollNotifier.value = false;
+            });
+          }
+          if (_pointerPositions.length == 2) {
+            final values = _pointerPositions.values.toList();
+            initialDistance = (values[1].dy - values[0].dy).abs();
+            initialHeightPerMinute = heightPerMinute;
+          }
+        },
+        onPointerUp: (details) {
+          print('pointer up ${details.pointer}');
+          _pointerPositions.remove(details.pointer);
+          if (_pointerPositions.length != 2) {
+            setState(() {
+              canScrollNotifier.value = true;
+            });
+          }
+        },
+        onPointerMove: (details) {
+          if (_pointerPositions.containsKey(details.pointer)) {
+            _pointerPositions[details.pointer] = details.position;
+          }
+          if (_pointerPositions.length == 2) {
+            final values = _pointerPositions.values.toList();
+            final distance = (values[1].dy - values[0].dy).abs();
+            final delta = distance - initialDistance;
+            final deltaPerMinute = delta / 60.0;
+            print('delta per minute: $deltaPerMinute');
+            setState(() {
+              heightPerMinute = initialHeightPerMinute + deltaPerMinute;
+            });
+          }
+        },
+        child: WeekView(
+          width: widget.width,
+          showLiveTimeLineInAllDays: true,
+          timeLineWidth: 65,
+          keepScrollOffset: true,
           heightPerMinute: heightPerMinute,
-          width: width,
-        );
-      },
-      scrollOffset: _calculateScrollOffset(),
-      liveTimeIndicatorSettings: LiveTimeIndicatorSettings(
-        color: Colors.redAccent,
-        showTime: true,
-      ),
-      onEventTap: (events, date) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => DetailsPage(
-              event: events.first,
-            ),
+          dateEventsBuilder: (
+              {required DateTime date,
+              required double height,
+              required double heightPerMinute,
+              required double width}) {
+            return DateEvents(
+              date: date,
+              height: height,
+              heightPerMinute: heightPerMinute,
+              width: width,
+            );
+          },
+          scrollViewBuilder: (
+              {required Widget child, required ScrollController controller}) {
+            return ValueListenableBuilder<bool>(
+              valueListenable: canScrollNotifier,
+              builder: (context, canScroll, child) {
+                return SingleChildScrollView(
+                  physics: canScroll ? null : NeverScrollableScrollPhysics(),
+                  controller: controller,
+                  child: child,
+                );
+              },
+              child: child,
+            );
+          },
+          scrollOffset: _calculateScrollOffset(),
+          liveTimeIndicatorSettings: LiveTimeIndicatorSettings(
+            color: Colors.redAccent,
+            showTime: true,
           ),
-        );
-      },
-      onEventLongTap: (events, date) {
-        SnackBar snackBar = SnackBar(content: Text("on LongTap"));
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      },
-    );
+          onEventTap: (events, date) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => DetailsPage(
+                  event: events.first,
+                ),
+              ),
+            );
+          },
+          onEventLongTap: (events, date) {
+            SnackBar snackBar = SnackBar(content: Text("on LongTap"));
+            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          },
+        ));
   }
 }
 
