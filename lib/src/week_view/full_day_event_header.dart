@@ -72,7 +72,7 @@ class _FullDayEventHeaderState extends State<FullDayEventHeader> {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: widget.hourIndicatorSettings.color,
+              color: Colors.black.withOpacity(0.1),
               width: 1,
             ),
           ),
