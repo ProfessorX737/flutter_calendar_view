@@ -212,6 +212,21 @@ class WeekView<T extends Object?> extends StatefulWidget {
   /// This field will be used to set end hour for week view
   final int endHour;
 
+  /// Defines custom day boundaries that can span across multiple calendar days.
+  /// If provided, this will override startHour and endHour.
+  /// Uses offset-based approach for clear intent and automatic DST handling.
+  ///
+  /// Example: To show a day starting 6 hours before and ending 18 hours after:
+  /// CustomDayBoundary(
+  ///   date: DateTime(2025, 1, 15), // Jan 15 is the logical "day"
+  ///   startOffset: Duration(hours: -6), // Start 6 hours before (6 PM Jan 14)
+  ///   endOffset: Duration(hours: 18), // End 18 hours after (6 PM Jan 15)
+  /// )
+  final CustomDayBoundary? customDayBoundary;
+
+  /// Override current time for testing live time indicator
+  final DateTime? testCurrentTime;
+
   ///Show half hour indicator
   final bool showHalfHours;
 
@@ -304,6 +319,8 @@ class WeekView<T extends Object?> extends StatefulWidget {
     this.pageViewPhysics,
     this.onEventDoubleTap,
     this.endHour = Constants.hoursADay,
+    this.customDayBoundary,
+    this.testCurrentTime,
     this.fullDayHeaderTitle = '',
     this.fullDayHeaderTextConfig,
     this.keepScrollOffset = false,
@@ -390,6 +407,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
 
   late int _startHour;
   late int _endHour;
+  late CustomDayBoundary? _customDayBoundary;
 
   final _scrollConfiguration = EventScrollConfiguration();
 
@@ -405,6 +423,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
 
     _startHour = widget.startHour;
     _endHour = widget.endHour;
+    _customDayBoundary = widget.customDayBoundary;
 
     _reloadCallback = _reload;
 
@@ -471,6 +490,9 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     }
 
     _eventArranger = widget.eventArranger ?? SideEventArranger<T>();
+
+    // Update custom day boundary
+    _customDayBoundary = widget.customDayBoundary;
 
     // Update heights.
     _calculateHeights();
@@ -588,6 +610,8 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                                   showWeekDayAtBottom:
                                       widget.showWeekDayAtBottom,
                                   endHour: _endHour,
+                                  customDayBoundary: _customDayBoundary,
+                                  testCurrentTime: widget.testCurrentTime,
                                   fullDayHeaderTitle: _fullDayHeaderTitle,
                                   fullDayHeaderTextConfig:
                                       _fullDayHeaderTextConfig,
@@ -700,7 +724,11 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
 
   void _calculateHeights() {
     _hourHeight = widget.heightPerMinute * 60;
-    _height = _hourHeight * (_endHour - _startHour);
+    if (_customDayBoundary != null) {
+      _height = widget.heightPerMinute * _customDayBoundary!.totalMinutes;
+    } else {
+      _height = _hourHeight * (_endHour - _startHour);
+    }
   }
 
   void _assignBuilders() {
@@ -780,16 +808,28 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     required double heightPerMinute,
     required MinuteSlotSize minuteSlotSize,
   }) =>
-      DefaultPressDetector(
-        date: date,
-        height: height,
-        width: width,
-        heightPerMinute: heightPerMinute,
-        minuteSlotSize: minuteSlotSize,
-        onDateTap: widget.onDateTap,
-        onDateLongPress: widget.onDateLongPress,
-        startHour: _startHour,
-      );
+      _customDayBoundary != null
+          ? CustomDayBoundaryPressDetector(
+              date: date,
+              height: height,
+              width: width,
+              heightPerMinute: heightPerMinute,
+              minuteSlotSize: minuteSlotSize,
+              onDateTap: widget.onDateTap,
+              onDateLongPress: widget.onDateLongPress,
+              customDayBoundary: _customDayBoundary!.forDate(date),
+            )
+          : DefaultPressDetector(
+              date: date,
+              height: height,
+              width: width,
+              heightPerMinute: heightPerMinute,
+              minuteSlotSize: minuteSlotSize,
+              onDateTap: widget.onDateTap,
+              onDateLongPress: widget.onDateLongPress,
+              startHour: _startHour,
+              customDayBoundary: _customDayBoundary?.forDate(date),
+            );
 
   /// Default builder for week line.
   Widget _defaultWeekDayBuilder(DateTime date) {
@@ -823,10 +863,16 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   /// Default timeline builder this builder will be used if
   /// [widget.eventTileBuilder] is null
   ///
-  Widget _defaultTimeLineBuilder(DateTime date) => DefaultTimeLineMark(
-        date: date,
-        timeStringBuilder: widget.timeLineStringBuilder,
-      );
+  Widget _defaultTimeLineBuilder(DateTime date) => _customDayBoundary != null
+      ? CustomDayBoundaryTimeLineMark(
+          date: date,
+          customDayBoundary: _customDayBoundary!.forDate(date),
+          timeStringBuilder: widget.timeLineStringBuilder,
+        )
+      : DefaultTimeLineMark(
+          date: date,
+          timeStringBuilder: widget.timeLineStringBuilder,
+        );
 
   /// Default timeline builder. This builder will be used if
   /// [widget.eventTileBuilder] is null

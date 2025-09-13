@@ -41,6 +41,12 @@ class LiveTimeIndicator extends StatefulWidget {
   /// This field will be used to set end hour for day and week view
   final int endHour;
 
+  /// Custom day boundary that can span across multiple calendar days
+  final CustomDayBoundary? customDayBoundary;
+
+  /// Override current time for testing purposes
+  final DateTime? testCurrentTime;
+
   /// Widget to display tile line according to current time.
   const LiveTimeIndicator({
     Key? key,
@@ -51,6 +57,8 @@ class LiveTimeIndicator extends StatefulWidget {
     required this.heightPerMinute,
     required this.startHour,
     this.endHour = Constants.hoursADay,
+    this.customDayBoundary,
+    this.testCurrentTime,
   }) : super(key: key);
 
   @override
@@ -87,26 +95,84 @@ class _LiveTimeIndicatorState extends State<LiveTimeIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    final currentHour = _currentTime.hourOfPeriod.appendLeadingZero();
-    final currentMinute = _currentTime.minute.appendLeadingZero();
-    final currentPeriod = _currentTime.period.name;
+    // Use test time if provided, otherwise use current time
+    final effectiveTime = widget.testCurrentTime ?? DateTime.now();
+    final timeOfDay = TimeOfDay.fromDateTime(effectiveTime);
+
+    final currentHour = timeOfDay.hourOfPeriod.appendLeadingZero();
+    final currentMinute = timeOfDay.minute.appendLeadingZero();
+    final currentPeriod = timeOfDay.period.name;
     final timeString = widget.liveTimeIndicatorSettings.timeStringBuilder
-            ?.call(DateTime.now()) ??
+            ?.call(effectiveTime) ??
         '$currentHour:$currentMinute $currentPeriod';
 
-    /// remove startHour minute from [_currentTime.getTotalMinutes]
-    /// to set dy offset of live time indicator
-    final startMinutes = widget.startHour * 60;
+    if (widget.customDayBoundary != null) {
+      // Custom day boundary logic - handle multiple occurrences
+      return _buildCustomBoundaryIndicators(effectiveTime, timeString);
+    } else {
+      // Standard startHour/endHour logic
+      final startMinutes = widget.startHour * 60;
 
-    /// Check if live time is not between startHour and endHour if it is then
-    /// don't show live time indicator
-    ///
-    /// e.g. startHour : 1:00, endHour : 13:00 and live time is 17:00
-    /// then no need to display live time indicator on timeline
-    if (_currentTime.hour > widget.startHour &&
-        widget.endHour <= _currentTime.hour) {
+      /// Check if live time is not between startHour and endHour
+      if (timeOfDay.hour < widget.startHour ||
+          timeOfDay.hour >= widget.endHour) {
+        return SizedBox.shrink();
+      }
+
+      final yOffset =
+          (timeOfDay.getTotalMinutes - startMinutes) * widget.heightPerMinute;
+
+      return _buildSingleIndicator(yOffset, timeString);
+    }
+  }
+
+  Widget _buildCustomBoundaryIndicators(
+      DateTime effectiveTime, String timeString) {
+    final boundary = widget.customDayBoundary!;
+    final indicators = <Widget>[];
+
+    // Calculate all possible positions where this time could appear
+    final timeOnly = TimeOfDay.fromDateTime(effectiveTime);
+    final startDate = DateTime(boundary.dayStartTime.year,
+        boundary.dayStartTime.month, boundary.dayStartTime.day);
+    final endDate = DateTime(boundary.dayEndTime.year,
+        boundary.dayEndTime.month, boundary.dayEndTime.day);
+
+    // Check each day within the boundary for potential time matches
+    var currentDate = startDate;
+    while (!currentDate.isAfter(endDate)) {
+      final potentialTime = DateTime(
+        currentDate.year,
+        currentDate.month,
+        currentDate.day,
+        timeOnly.hour,
+        timeOnly.minute,
+      );
+
+      // Check if this potential time falls within our custom boundary
+      if (boundary.containsTime(potentialTime)) {
+        final minutesFromStart = boundary.getMinutesFromStart(potentialTime);
+        final yOffset = minutesFromStart * widget.heightPerMinute;
+
+        // Only show if the offset is within the visible area
+        if (yOffset >= 0 && yOffset <= widget.height) {
+          indicators.add(_buildSingleIndicator(yOffset, timeString));
+        }
+      }
+
+      currentDate = currentDate.add(Duration(days: 1));
+    }
+
+    // If no indicators found, don't show anything
+    if (indicators.isEmpty) {
       return SizedBox.shrink();
     }
+
+    // Return stack of all indicators
+    return Stack(children: indicators);
+  }
+
+  Widget _buildSingleIndicator(double yOffset, String timeString) {
     return CustomPaint(
       size: Size(widget.width, widget.liveTimeIndicatorSettings.height),
       painter: CurrentTimeLinePainter(
@@ -114,8 +180,7 @@ class _LiveTimeIndicatorState extends State<LiveTimeIndicator> {
         height: widget.liveTimeIndicatorSettings.height,
         offset: Offset(
           widget.timeLineWidth + widget.liveTimeIndicatorSettings.offset,
-          (_currentTime.getTotalMinutes - startMinutes) *
-              widget.heightPerMinute,
+          yOffset,
         ),
         timeString: timeString,
         showBullet: widget.liveTimeIndicatorSettings.showBullet,
@@ -167,6 +232,9 @@ class TimeLine extends StatefulWidget {
   /// This field will be used to set end hour for day and week view
   final int endHour;
 
+  /// Custom day boundary that can span across multiple calendar days
+  final CustomDayBoundary? customDayBoundary;
+
   /// Time line to display time at left side of day or week view.
   const TimeLine({
     Key? key,
@@ -180,6 +248,7 @@ class TimeLine extends StatefulWidget {
     this.showQuarterHours = false,
     required this.liveTimeIndicatorSettings,
     this.endHour = Constants.hoursADay,
+    this.customDayBoundary,
   }) : super(key: key);
 
   @override
@@ -225,57 +294,146 @@ class _TimeLineState extends State<TimeLine> {
         minHeight: widget.height,
       ),
       child: Stack(
-        children: [
-          for (int i = widget.startHour + 1; i < widget.endHour; i++)
-            _timelinePositioned(
-              topPosition: widget.hourHeight * (i - widget.startHour) -
-                  widget.timeLineOffset,
-              bottomPosition: widget.height -
-                  (widget.hourHeight * (i - widget.startHour + 1)) +
-                  widget.timeLineOffset,
-              hour: i,
-            ),
-          if (widget.showHalfHours)
-            for (int i = widget.startHour; i < widget.endHour; i++)
-              _timelinePositioned(
-                topPosition: widget.hourHeight * (i - widget.startHour) -
-                    widget.timeLineOffset +
-                    widget._halfHourHeight,
-                bottomPosition: widget.height -
-                    (widget.hourHeight * (i - widget.startHour + 1)) +
-                    widget.timeLineOffset,
-                hour: i,
-                minutes: 30,
-              ),
-          if (widget.showQuarterHours)
-            for (int i = 0; i < widget.endHour; i++) ...[
-              /// this is for 15 minutes
-              _timelinePositioned(
-                topPosition: widget.hourHeight * i -
-                    widget.timeLineOffset +
-                    widget.hourHeight * 0.25,
-                bottomPosition: widget.height -
-                    (widget.hourHeight * (i + 1)) +
-                    widget.timeLineOffset,
-                hour: i,
-                minutes: 15,
-              ),
-
-              /// this is for 45 minutes
-              _timelinePositioned(
-                topPosition: widget.hourHeight * i -
-                    widget.timeLineOffset +
-                    widget.hourHeight * 0.75,
-                bottomPosition: widget.height -
-                    (widget.hourHeight * (i + 1)) +
-                    widget.timeLineOffset,
-                hour: i,
-                minutes: 45,
-              ),
-            ],
-        ],
+        children: widget.customDayBoundary != null
+            ? _buildCustomDayBoundaryTimeline()
+            : _buildStandardTimeline(),
       ),
     );
+  }
+
+  List<Widget> _buildStandardTimeline() {
+    return [
+      for (int i = widget.startHour + 1; i < widget.endHour; i++)
+        _timelinePositioned(
+          topPosition: widget.hourHeight * (i - widget.startHour) -
+              widget.timeLineOffset,
+          bottomPosition: widget.height -
+              (widget.hourHeight * (i - widget.startHour + 1)) +
+              widget.timeLineOffset,
+          hour: i,
+        ),
+      if (widget.showHalfHours)
+        for (int i = widget.startHour; i < widget.endHour; i++)
+          _timelinePositioned(
+            topPosition: widget.hourHeight * (i - widget.startHour) -
+                widget.timeLineOffset +
+                widget._halfHourHeight,
+            bottomPosition: widget.height -
+                (widget.hourHeight * (i - widget.startHour + 1)) +
+                widget.timeLineOffset,
+            hour: i,
+            minutes: 30,
+          ),
+      if (widget.showQuarterHours)
+        for (int i = 0; i < widget.endHour; i++) ...[
+          /// this is for 15 minutes
+          _timelinePositioned(
+            topPosition: widget.hourHeight * i -
+                widget.timeLineOffset +
+                widget.hourHeight * 0.25,
+            bottomPosition: widget.height -
+                (widget.hourHeight * (i + 1)) +
+                widget.timeLineOffset,
+            hour: i,
+            minutes: 15,
+          ),
+
+          /// this is for 45 minutes
+          _timelinePositioned(
+            topPosition: widget.hourHeight * i -
+                widget.timeLineOffset +
+                widget.hourHeight * 0.75,
+            bottomPosition: widget.height -
+                (widget.hourHeight * (i + 1)) +
+                widget.timeLineOffset,
+            hour: i,
+            minutes: 45,
+          ),
+        ],
+    ];
+  }
+
+  List<Widget> _buildCustomDayBoundaryTimeline() {
+    final customBoundary = widget.customDayBoundary!;
+    final totalMinutes = customBoundary.totalMinutes;
+    final heightPerMinute = widget.height / totalMinutes;
+
+    List<Widget> timelineItems = [];
+
+    // Generate timeline markers every hour for the entire duration
+    DateTime currentTime = customBoundary.dayStartTime;
+    final endTime = customBoundary.dayEndTime;
+
+    // Add the first timeline marker at the start time
+    timelineItems.add(_customTimelinePositioned(
+      topPosition: 0 - widget.timeLineOffset,
+      dateTime: currentTime,
+    ));
+
+    // Move to next hour boundary
+    currentTime = DateTime(
+      currentTime.year,
+      currentTime.month,
+      currentTime.day,
+      currentTime.hour + 1,
+      0,
+    );
+
+    while (currentTime.isBefore(endTime)) {
+      final minutesFromStart =
+          currentTime.difference(customBoundary.dayStartTime).inMinutes;
+      final topPosition =
+          minutesFromStart * heightPerMinute - widget.timeLineOffset;
+
+      // Always add hour markers (they may be scrolled into view)
+      timelineItems.add(_customTimelinePositioned(
+        topPosition: topPosition,
+        dateTime: currentTime,
+      ));
+
+      // Add half hour markers if enabled
+      if (widget.showHalfHours) {
+        final halfHourTime = currentTime.subtract(Duration(minutes: 30));
+        if (halfHourTime.isAfter(customBoundary.dayStartTime) &&
+            halfHourTime.isBefore(endTime)) {
+          final halfHourMinutesFromStart =
+              halfHourTime.difference(customBoundary.dayStartTime).inMinutes;
+          final halfHourTopPosition =
+              halfHourMinutesFromStart * heightPerMinute -
+                  widget.timeLineOffset;
+
+          timelineItems.add(_customTimelinePositioned(
+            topPosition: halfHourTopPosition,
+            dateTime: halfHourTime,
+          ));
+        }
+      }
+
+      // Add quarter hour markers if enabled
+      if (widget.showQuarterHours) {
+        for (int quarter in [15, 45]) {
+          final quarterTime =
+              currentTime.subtract(Duration(minutes: 60 - quarter));
+          if (quarterTime.isAfter(customBoundary.dayStartTime) &&
+              quarterTime.isBefore(endTime)) {
+            final quarterMinutesFromStart =
+                quarterTime.difference(customBoundary.dayStartTime).inMinutes;
+            final quarterTopPosition =
+                quarterMinutesFromStart * heightPerMinute -
+                    widget.timeLineOffset;
+
+            timelineItems.add(_customTimelinePositioned(
+              topPosition: quarterTopPosition,
+              dateTime: quarterTime,
+            ));
+          }
+        }
+      }
+
+      currentTime = currentTime.add(Duration(hours: 1));
+    }
+
+    return timelineItems;
   }
 
   /// To avoid overlap of live time line indicator, show time line when
@@ -310,6 +468,23 @@ class _TimeLineState extends State<TimeLine> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Timeline positioned widget for custom day boundaries
+  Widget _customTimelinePositioned({
+    required double topPosition,
+    required DateTime dateTime,
+  }) {
+    return Positioned(
+      top: topPosition,
+      left: 0,
+      right: 0,
+      child: Container(
+        height: widget.hourHeight,
+        width: widget.timeLineWidth,
+        child: widget.timeLineBuilder.call(dateTime),
       ),
     );
   }

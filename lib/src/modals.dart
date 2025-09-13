@@ -83,3 +83,64 @@ class LiveTimeIndicatorSettings {
         showBullet: false,
       );
 }
+
+/// Defines custom day boundaries that can span across multiple calendar days.
+/// This allows creating day views that don't follow the traditional midnight-to-midnight pattern.
+/// Uses offset-based approach for crystal clear intent and automatic DST/timezone handling.
+class CustomDayBoundary {
+  /// The logical date this boundary represents
+  final DateTime date;
+
+  /// Offset from the date when the custom day starts (can be negative for previous day)
+  final Duration startOffset;
+
+  /// Offset from the date when the custom day ends
+  final Duration endOffset;
+
+  CustomDayBoundary({
+    required this.date,
+    required this.startOffset,
+    required this.endOffset,
+  }) : assert(
+            startOffset < endOffset, "Start offset must be before end offset");
+
+  /// The actual start time of the custom day (date + startOffset)
+  DateTime get dayStartTime => date.add(startOffset);
+
+  /// The actual end time of the custom day (date + endOffset)
+  DateTime get dayEndTime => date.add(endOffset);
+
+  /// The total duration of this custom day boundary
+  Duration get duration => endOffset - startOffset;
+
+  /// Returns the total duration of this custom day boundary in minutes
+  int get totalMinutes => duration.inMinutes;
+
+  /// Returns the total duration in hours (for backward compatibility)
+  double get totalHours => totalMinutes / 60.0;
+
+  /// Checks if a given DateTime falls within this custom day boundary
+  bool containsTime(DateTime dateTime) {
+    return dateTime.isAtSameMomentAs(dayStartTime) ||
+        (dateTime.isAfter(dayStartTime) && dateTime.isBefore(dayEndTime)) ||
+        dateTime.isAtSameMomentAs(dayEndTime);
+  }
+
+  /// Gets the offset in minutes from the start of this custom day boundary
+  int getMinutesFromStart(DateTime dateTime) {
+    return dateTime.difference(dayStartTime).inMinutes;
+  }
+
+  /// Creates a new CustomDayBoundary for a specific date, maintaining the same offsets.
+  /// This is now trivial - just change the date and keep the same start/end offsets.
+  ///
+  /// Example: If original boundary was for Jan 15 with -6h to +18h offsets,
+  /// then forDate(Jan 20) creates Jan 20 with the same -6h to +18h offsets.
+  CustomDayBoundary forDate(DateTime newDate) {
+    return CustomDayBoundary(
+      date: DateTime(newDate.year, newDate.month, newDate.day),
+      startOffset: startOffset,
+      endOffset: endOffset,
+    );
+  }
+}

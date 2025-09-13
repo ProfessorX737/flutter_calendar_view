@@ -148,6 +148,12 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
   /// This field will be used to set end hour for week view
   final int endHour;
 
+  /// Custom day boundary that can span across multiple calendar days
+  final CustomDayBoundary? customDayBoundary;
+
+  /// Override current time for testing purposes
+  final DateTime? testCurrentTime;
+
   /// Title of the full day events row
   final String fullDayHeaderTitle;
 
@@ -211,6 +217,8 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
     required this.emulateVerticalOffsetBy,
     required this.onTileDoubleTap,
     required this.endHour,
+    this.customDayBoundary,
+    this.testCurrentTime,
     this.fullDayHeaderTitle = '',
     required this.fullDayHeaderTextConfig,
     required this.scrollListener,
@@ -328,6 +336,7 @@ class _InternalWeekViewPageState<T extends Object?>
                         startHour: widget.startHour,
                         emulateVerticalOffsetBy: widget.emulateVerticalOffsetBy,
                         endHour: widget.endHour,
+                        customDayBoundary: widget.customDayBoundary,
                       ),
                     ),
                     if (widget.showHalfHours)
@@ -345,6 +354,7 @@ class _InternalWeekViewPageState<T extends Object?>
                               widget.halfHourIndicatorSettings.dashSpaceWidth,
                           startHour: widget.halfHourIndicatorSettings.startHour,
                           endHour: widget.endHour,
+                          customDayBoundary: widget.customDayBoundary,
                         ),
                       ),
                     if (widget.showQuarterHours)
@@ -363,6 +373,7 @@ class _InternalWeekViewPageState<T extends Object?>
                               widget.quarterHourIndicatorSettings.dashWidth,
                           dashSpaceWidth: widget
                               .quarterHourIndicatorSettings.dashSpaceWidth,
+                          customDayBoundary: widget.customDayBoundary,
                         ),
                       ),
                     Align(
@@ -443,6 +454,7 @@ class _InternalWeekViewPageState<T extends Object?>
                       liveTimeIndicatorSettings:
                           widget.liveTimeIndicatorSettings,
                       endHour: widget.endHour,
+                      customDayBoundary: widget.customDayBoundary,
                     ),
                     if (widget.showLiveLine &&
                         widget.liveTimeIndicatorSettings.height > 0)
@@ -455,6 +467,8 @@ class _InternalWeekViewPageState<T extends Object?>
                         timeLineWidth: widget.timeLineWidth,
                         startHour: widget.startHour,
                         endHour: widget.endHour,
+                        customDayBoundary: widget.customDayBoundary,
+                        testCurrentTime: widget.testCurrentTime,
                       ),
                     widget.weekDecorationBuilder(
                       widthOffset: widget.timeLineWidth +

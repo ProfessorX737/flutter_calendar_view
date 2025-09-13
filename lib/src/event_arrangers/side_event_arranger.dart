@@ -30,6 +30,7 @@ class SideEventArranger<T extends Object?> extends EventArranger<T> {
     required double width,
     required double heightPerMinute,
     required int startHour,
+    CustomDayBoundary? customDayBoundary,
   }) {
     final mergedEvents = MergeEventArranger<T>(
       includeEdges: includeEdges,
@@ -39,6 +40,7 @@ class SideEventArranger<T extends Object?> extends EventArranger<T> {
       width: width,
       heightPerMinute: heightPerMinute,
       startHour: startHour,
+      customDayBoundary: customDayBoundary,
     );
 
     final arrangedEvents = <OrganizedCalendarEventData<T>>[];
@@ -103,18 +105,32 @@ class SideEventArranger<T extends Object?> extends EventArranger<T> {
         final startTime = sideEvent.event.startTime!;
         final endTime = sideEvent.event.endTime!;
 
-        // startTime.getTotalMinutes returns the number of minutes from 00h00 to the beginning hour of the event
-        // But the first hour to be displayed (startHour) could be 06h00, so we have to substract
-        // The number of minutes from 00h00 to startHour which is equal to startHour * 60
+        final double top, bottom;
 
-        final bottom = height -
-            (endTime.getTotalMinutes - (startHour * 60) == 0
-                    ? Constants.minutesADay - (startHour * 60)
-                    : endTime.getTotalMinutes - (startHour * 60)) *
-                heightPerMinute;
+        if (customDayBoundary != null) {
+          // Use custom day boundary for positioning
+          final startMinutesFromBoundary =
+              customDayBoundary.getMinutesFromStart(startTime);
+          final endMinutesFromBoundary =
+              customDayBoundary.getMinutesFromStart(endTime);
 
-        final top =
-            (startTime.getTotalMinutes - (startHour * 60)) * heightPerMinute;
+          top = startMinutesFromBoundary * heightPerMinute;
+          bottom = height - (endMinutesFromBoundary * heightPerMinute);
+        } else {
+          // Use standard hour-based positioning
+          // startTime.getTotalMinutes returns the number of minutes from 00h00 to the beginning hour of the event
+          // But the first hour to be displayed (startHour) could be 06h00, so we have to substract
+          // The number of minutes from 00h00 to startHour which is equal to startHour * 60
+
+          bottom = height -
+              (endTime.getTotalMinutes - (startHour * 60) == 0
+                      ? Constants.minutesADay - (startHour * 60)
+                      : endTime.getTotalMinutes - (startHour * 60)) *
+                  heightPerMinute;
+
+          top =
+              (startTime.getTotalMinutes - (startHour * 60)) * heightPerMinute;
+        }
 
         arrangedEvents.add(OrganizedCalendarEventData<T>(
           left: slotWidth * (sideEvent.column - 1),

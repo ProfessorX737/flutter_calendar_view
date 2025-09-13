@@ -11,6 +11,7 @@ import '../extensions.dart';
 import '../style/header_style.dart';
 import '../typedefs.dart';
 import '../enumerations.dart';
+import '../modals.dart';
 import 'components.dart';
 
 class CalendarPageHeader extends StatelessWidget {
@@ -134,6 +135,7 @@ class DefaultPressDetector extends StatelessWidget {
     this.onDateTap,
     this.onDateLongPress,
     this.startHour = 0,
+    this.customDayBoundary,
   });
 
   final DateTime date;
@@ -144,11 +146,20 @@ class DefaultPressDetector extends StatelessWidget {
   final DateTapCallback? onDateTap;
   final DatePressCallback? onDateLongPress;
   final int startHour;
+  final CustomDayBoundary? customDayBoundary;
 
   @override
   Widget build(BuildContext context) {
     final heightPerSlot = minuteSlotSize.minutes * heightPerMinute;
-    final slots = (Constants.hoursADay * 60) ~/ minuteSlotSize.minutes;
+    final int totalMinutes;
+
+    if (customDayBoundary != null) {
+      totalMinutes = customDayBoundary!.totalMinutes;
+    } else {
+      totalMinutes = Constants.hoursADay * 60;
+    }
+
+    final slots = totalMinutes ~/ minuteSlotSize.minutes;
 
     return SizedBox(
       height: height,
@@ -180,13 +191,132 @@ class DefaultPressDetector extends StatelessWidget {
     );
   }
 
-  DateTime getSlotDateTime(int slot) => DateTime(
+  DateTime getSlotDateTime(int slot) {
+    if (customDayBoundary != null) {
+      // Calculate datetime based on custom boundary
+      final totalMinutesFromStart = minuteSlotSize.minutes * slot;
+      return customDayBoundary!.dayStartTime
+          .add(Duration(minutes: totalMinutesFromStart));
+    } else {
+      // Standard calculation
+      return DateTime(
         date.year,
         date.month,
         date.day,
         0,
         (minuteSlotSize.minutes * slot) + (startHour * 60),
       );
+    }
+  }
+}
+
+/// Press detector that works with custom day boundaries that can span multiple calendar days
+class CustomDayBoundaryPressDetector extends StatelessWidget {
+  /// Press detector for custom day boundaries
+  const CustomDayBoundaryPressDetector({
+    Key? key,
+    required this.date,
+    required this.height,
+    required this.width,
+    required this.heightPerMinute,
+    required this.minuteSlotSize,
+    required this.customDayBoundary,
+    this.onDateTap,
+    this.onDateLongPress,
+  }) : super(key: key);
+
+  final DateTime date;
+  final double height;
+  final double width;
+  final double heightPerMinute;
+  final MinuteSlotSize minuteSlotSize;
+  final CustomDayBoundary customDayBoundary;
+  final DateTapCallback? onDateTap;
+  final DatePressCallback? onDateLongPress;
+
+  @override
+  Widget build(BuildContext context) {
+    final heightPerSlot = minuteSlotSize.minutes * heightPerMinute;
+    final totalMinutes = customDayBoundary.totalMinutes;
+    final slots = totalMinutes ~/ minuteSlotSize.minutes;
+
+    return SizedBox(
+      height: height,
+      width: width,
+      child: Stack(
+        children: [
+          for (int i = 0; i < slots; i++)
+            Positioned(
+              top: heightPerSlot * i,
+              left: 0,
+              right: 0,
+              bottom: height - (heightPerSlot * (i + 1)),
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onLongPress: () => onDateLongPress?.call(
+                  getSlotDateTime(i),
+                ),
+                onTap: () => onDateTap?.call(
+                  getSlotDateTime(i),
+                ),
+                child: SizedBox(
+                  width: width,
+                  height: heightPerSlot,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  DateTime getSlotDateTime(int slot) {
+    final minutesFromStart = minuteSlotSize.minutes * slot;
+    return customDayBoundary.dayStartTime
+        .add(Duration(minutes: minutesFromStart));
+  }
+}
+
+/// Timeline mark that displays time based on custom day boundaries
+class CustomDayBoundaryTimeLineMark extends StatelessWidget {
+  /// Timeline mark for custom day boundaries
+  const CustomDayBoundaryTimeLineMark({
+    Key? key,
+    required this.date,
+    required this.customDayBoundary,
+    this.timeStringBuilder,
+  }) : super(key: key);
+
+  final DateTime date;
+  final CustomDayBoundary customDayBoundary;
+  final StringProvider? timeStringBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    String timeString;
+
+    if (timeStringBuilder != null) {
+      timeString = timeStringBuilder!(date);
+    } else {
+      final hour =
+          date.hour == 0 ? 12 : (date.hour > 12 ? date.hour - 12 : date.hour);
+      final period = date.hour >= 12 ? 'PM' : 'AM';
+      timeString = '$hour ${date.minute.toString().padLeft(2, '0')} $period';
+    }
+
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Text(
+        timeString,
+        textAlign: TextAlign.right,
+        style: TextStyle(
+          color: Colors.black54,
+          fontWeight: FontWeight.w400,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
 }
 
 /// This will be used in day and week view

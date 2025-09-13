@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import 'constants.dart';
 import 'enumerations.dart';
+import 'modals.dart';
 
 /// Paints 24 hour lines.
 class HourLinePainter extends CustomPainter {
@@ -47,6 +48,9 @@ class HourLinePainter extends CustomPainter {
   /// This field will be used to set end hour for day and week view
   final int endHour;
 
+  /// Custom day boundary that can span across multiple calendar days
+  final CustomDayBoundary? customDayBoundary;
+
   /// Paints 24 hour lines.
   HourLinePainter({
     required this.lineColor,
@@ -61,6 +65,7 @@ class HourLinePainter extends CustomPainter {
     this.lineStyle = LineStyle.solid,
     this.dashWidth = 4,
     this.dashSpaceWidth = 4,
+    this.customDayBoundary,
   });
 
   @override
@@ -70,17 +75,41 @@ class HourLinePainter extends CustomPainter {
       ..color = lineColor
       ..strokeWidth = lineHeight;
 
-    for (var i = startHour + 1; i < endHour; i++) {
-      final dy = (i - startHour) * minuteHeight * 60;
-      if (lineStyle == LineStyle.dashed) {
-        var startX = dx;
-        while (startX < size.width) {
-          canvas.drawLine(
-              Offset(startX, dy), Offset(startX + dashWidth, dy), paint);
-          startX += dashWidth + dashSpaceWidth;
+    if (customDayBoundary != null) {
+      // Paint hour lines for custom day boundary
+      final totalMinutes = customDayBoundary!.totalMinutes;
+      final heightPerMinute = size.height / totalMinutes;
+      final totalHours = (totalMinutes / 60).ceil();
+
+      for (var i = 1; i <= totalHours; i++) {
+        final dy = i * heightPerMinute * 60;
+        if (dy <= size.height) {
+          if (lineStyle == LineStyle.dashed) {
+            var startX = dx;
+            while (startX < size.width) {
+              canvas.drawLine(
+                  Offset(startX, dy), Offset(startX + dashWidth, dy), paint);
+              startX += dashWidth + dashSpaceWidth;
+            }
+          } else {
+            canvas.drawLine(Offset(dx, dy), Offset(size.width, dy), paint);
+          }
         }
-      } else {
-        canvas.drawLine(Offset(dx, dy), Offset(size.width, dy), paint);
+      }
+    } else {
+      // Standard hour lines
+      for (var i = startHour + 1; i < endHour; i++) {
+        final dy = (i - startHour) * minuteHeight * 60;
+        if (lineStyle == LineStyle.dashed) {
+          var startX = dx;
+          while (startX < size.width) {
+            canvas.drawLine(
+                Offset(startX, dy), Offset(startX + dashWidth, dy), paint);
+            startX += dashWidth + dashSpaceWidth;
+          }
+        } else {
+          canvas.drawLine(Offset(dx, dy), Offset(size.width, dy), paint);
+        }
       }
     }
 
@@ -106,7 +135,8 @@ class HourLinePainter extends CustomPainter {
             oldDelegate.offset != offset ||
             lineHeight != oldDelegate.lineHeight ||
             minuteHeight != oldDelegate.minuteHeight ||
-            showVerticalLine != oldDelegate.showVerticalLine);
+            showVerticalLine != oldDelegate.showVerticalLine ||
+            customDayBoundary != oldDelegate.customDayBoundary);
   }
 }
 
@@ -138,6 +168,9 @@ class HalfHourLinePainter extends CustomPainter {
   /// This field will be used to set end hour for day and week view
   final int endHour;
 
+  /// Custom day boundary that can span across multiple calendar days
+  final CustomDayBoundary? customDayBoundary;
+
   /// Paint half hour lines
   HalfHourLinePainter({
     required this.lineColor,
@@ -149,6 +182,7 @@ class HalfHourLinePainter extends CustomPainter {
     this.dashWidth = 4,
     this.dashSpaceWidth = 4,
     this.endHour = Constants.hoursADay,
+    this.customDayBoundary,
   });
 
   @override
@@ -157,28 +191,57 @@ class HalfHourLinePainter extends CustomPainter {
       ..color = lineColor
       ..strokeWidth = lineHeight;
 
-    for (var i = startHour; i < endHour; i++) {
-      final dy = (i - startHour) * minuteHeight * 60 + (minuteHeight * 30);
-      if (lineStyle == LineStyle.dashed) {
-        var startX = offset;
-        while (startX < size.width) {
-          canvas.drawLine(
-              Offset(startX, dy), Offset(startX + dashWidth, dy), paint);
-          startX += dashWidth + dashSpaceWidth;
+    if (customDayBoundary != null) {
+      // Paint half-hour lines for custom day boundary
+      final totalMinutes = customDayBoundary!.totalMinutes;
+      final heightPerMinute = size.height / totalMinutes;
+      final totalHalfHours = (totalMinutes / 30).floor();
+
+      for (var i = 1; i <= totalHalfHours; i++) {
+        // Only paint on odd half-hours (30 min marks, not full hours)
+        if (i % 2 == 1) {
+          final dy = i * heightPerMinute * 30;
+          if (dy <= size.height) {
+            if (lineStyle == LineStyle.dashed) {
+              var startX = offset;
+              while (startX < size.width) {
+                canvas.drawLine(
+                    Offset(startX, dy), Offset(startX + dashWidth, dy), paint);
+                startX += dashWidth + dashSpaceWidth;
+              }
+            } else {
+              canvas.drawLine(
+                  Offset(offset, dy), Offset(size.width, dy), paint);
+            }
+          }
         }
-      } else {
-        canvas.drawLine(Offset(offset, dy), Offset(size.width, dy), paint);
+      }
+    } else {
+      // Standard half-hour lines
+      for (var i = startHour; i < endHour; i++) {
+        final dy = (i - startHour) * minuteHeight * 60 + (minuteHeight * 30);
+        if (lineStyle == LineStyle.dashed) {
+          var startX = offset;
+          while (startX < size.width) {
+            canvas.drawLine(
+                Offset(startX, dy), Offset(startX + dashWidth, dy), paint);
+            startX += dashWidth + dashSpaceWidth;
+          }
+        } else {
+          canvas.drawLine(Offset(offset, dy), Offset(size.width, dy), paint);
+        }
       }
     }
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return oldDelegate is HourLinePainter &&
+    return oldDelegate is HalfHourLinePainter &&
         (oldDelegate.lineColor != lineColor ||
             oldDelegate.offset != offset ||
             lineHeight != oldDelegate.lineHeight ||
-            minuteHeight != oldDelegate.minuteHeight);
+            minuteHeight != oldDelegate.minuteHeight ||
+            customDayBoundary != oldDelegate.customDayBoundary);
   }
 }
 
@@ -205,6 +268,9 @@ class QuarterHourLinePainter extends CustomPainter {
   /// Line dash space width when using the [LineStyle.dashed] style
   final double dashSpaceWidth;
 
+  /// Custom day boundary that can span across multiple calendar days
+  final CustomDayBoundary? customDayBoundary;
+
   /// Paint quarter hour lines
   QuarterHourLinePainter({
     required this.lineColor,
@@ -214,6 +280,7 @@ class QuarterHourLinePainter extends CustomPainter {
     required this.lineStyle,
     this.dashWidth = 4,
     this.dashSpaceWidth = 4,
+    this.customDayBoundary,
   });
 
   @override
@@ -222,35 +289,64 @@ class QuarterHourLinePainter extends CustomPainter {
       ..color = lineColor
       ..strokeWidth = lineHeight;
 
-    for (var i = 0; i < Constants.hoursADay; i++) {
-      final dy1 = i * minuteHeight * 60 + (minuteHeight * 15);
-      final dy2 = i * minuteHeight * 60 + (minuteHeight * 45);
+    if (customDayBoundary != null) {
+      // Paint quarter-hour lines for custom day boundary
+      final totalMinutes = customDayBoundary!.totalMinutes;
+      final heightPerMinute = size.height / totalMinutes;
+      final totalQuarterHours = (totalMinutes / 15).floor();
 
-      if (lineStyle == LineStyle.dashed) {
-        var startX = offset;
-        while (startX < size.width) {
-          canvas.drawLine(
-              Offset(startX, dy1), Offset(startX + dashWidth, dy1), paint);
-          startX += dashWidth + dashSpaceWidth;
-
-          canvas.drawLine(
-              Offset(startX, dy2), Offset(startX + dashWidth, dy2), paint);
-          startX += dashWidth + dashSpaceWidth;
+      for (var i = 1; i <= totalQuarterHours; i++) {
+        // Only paint on quarter hours that aren't full hours or half hours
+        if (i % 4 != 0 && i % 2 != 0) {
+          final dy = i * heightPerMinute * 15;
+          if (dy <= size.height) {
+            if (lineStyle == LineStyle.dashed) {
+              var startX = offset;
+              while (startX < size.width) {
+                canvas.drawLine(
+                    Offset(startX, dy), Offset(startX + dashWidth, dy), paint);
+                startX += dashWidth + dashSpaceWidth;
+              }
+            } else {
+              canvas.drawLine(
+                  Offset(offset, dy), Offset(size.width, dy), paint);
+            }
+          }
         }
-      } else {
-        canvas.drawLine(Offset(offset, dy1), Offset(size.width, dy1), paint);
-        canvas.drawLine(Offset(offset, dy2), Offset(size.width, dy2), paint);
+      }
+    } else {
+      // Standard quarter-hour lines
+      for (var i = 0; i < Constants.hoursADay; i++) {
+        final dy1 = i * minuteHeight * 60 + (minuteHeight * 15);
+        final dy2 = i * minuteHeight * 60 + (minuteHeight * 45);
+
+        if (lineStyle == LineStyle.dashed) {
+          var startX = offset;
+          while (startX < size.width) {
+            canvas.drawLine(
+                Offset(startX, dy1), Offset(startX + dashWidth, dy1), paint);
+            startX += dashWidth + dashSpaceWidth;
+
+            canvas.drawLine(
+                Offset(startX, dy2), Offset(startX + dashWidth, dy2), paint);
+            startX += dashWidth + dashSpaceWidth;
+          }
+        } else {
+          canvas.drawLine(Offset(offset, dy1), Offset(size.width, dy1), paint);
+          canvas.drawLine(Offset(offset, dy2), Offset(size.width, dy2), paint);
+        }
       }
     }
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return oldDelegate is HourLinePainter &&
+    return oldDelegate is QuarterHourLinePainter &&
         (oldDelegate.lineColor != lineColor ||
             oldDelegate.offset != offset ||
             lineHeight != oldDelegate.lineHeight ||
-            minuteHeight != oldDelegate.minuteHeight);
+            minuteHeight != oldDelegate.minuteHeight ||
+            customDayBoundary != oldDelegate.customDayBoundary);
   }
 }
 
