@@ -29,7 +29,7 @@ class WeekView<T extends Object?> extends StatefulWidget {
   final EventTileBuilder<T>? eventTileBuilder;
 
   /// Builder for timeline.
-  final DateWidgetBuilder? timeLineBuilder;
+  final TimelineMarkerBuilder? timeLineBuilder;
 
   /// Header builder for week page header.
   final WeekPageHeaderBuilder? weekPageHeaderBuilder;
@@ -381,7 +381,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
 
   late PageController _pageController;
 
-  late DateWidgetBuilder _timeLineBuilder;
+  late TimelineMarkerBuilder _timeLineBuilder;
   late EventTileBuilder<T> _eventTileBuilder;
   late WeekPageHeaderBuilder _weekHeaderBuilder;
   late DateWidgetBuilder _weekDayBuilder;
@@ -854,16 +854,17 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   /// Default timeline builder this builder will be used if
   /// [widget.eventTileBuilder] is null
   ///
-  Widget _defaultTimeLineBuilder(DateTime date) => _customDayBoundary != null
-      ? CustomDayBoundaryTimeLineMark(
-          date: date,
-          customDayBoundary: _customDayBoundary!,
-          timeStringBuilder: widget.timeLineStringBuilder,
-        )
-      : DefaultTimeLineMark(
-          date: date,
-          timeStringBuilder: widget.timeLineStringBuilder,
-        );
+  Widget _defaultTimeLineBuilder(DateTime date, {required int index}) =>
+      _customDayBoundary != null
+          ? CustomDayBoundaryTimeLineMark(
+              date: date,
+              customDayBoundary: _customDayBoundary!,
+              timeStringBuilder: widget.timeLineStringBuilder,
+            )
+          : DefaultTimeLineMark(
+              date: date,
+              timeStringBuilder: widget.timeLineStringBuilder,
+            );
 
   /// Default timeline builder. This builder will be used if
   /// [widget.eventTileBuilder] is null

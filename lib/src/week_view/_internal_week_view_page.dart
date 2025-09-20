@@ -34,7 +34,7 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
   final EventController<T> controller;
 
   /// A builder to build time line.
-  final DateWidgetBuilder timeLineBuilder;
+  final TimelineMarkerBuilder timeLineBuilder;
 
   /// Settings for hour indicator lines.
   final HourIndicatorSettings hourIndicatorSettings;

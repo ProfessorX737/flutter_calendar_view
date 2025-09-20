@@ -36,6 +36,9 @@ typedef WeekDayBuilder = Widget Function(
 
 typedef DateWidgetBuilder = Widget Function(DateTime date);
 
+typedef TimelineMarkerBuilder = Widget Function(DateTime date,
+    {required int index});
+
 typedef HeaderTitleCallback = Future<void> Function(DateTime date);
 
 typedef WeekNumberBuilder = Widget? Function(

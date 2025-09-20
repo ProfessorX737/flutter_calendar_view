@@ -31,7 +31,7 @@ class InternalDayViewPage<T extends Object?> extends StatefulWidget {
   final EventController<T> controller;
 
   /// A builder that builds time line.
-  final DateWidgetBuilder timeLineBuilder;
+  final TimelineMarkerBuilder timeLineBuilder;
 
   /// Builds custom PressDetector widget
   final DetectorBuilder dayDetectorBuilder;

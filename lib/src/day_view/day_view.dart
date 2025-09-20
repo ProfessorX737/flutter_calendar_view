@@ -42,7 +42,7 @@ class DayView<T extends Object?> extends StatefulWidget {
   ///
   /// If null is provided then no time line will be visible.
   ///
-  final DateWidgetBuilder? timeLineBuilder;
+  final TimelineMarkerBuilder? timeLineBuilder;
 
   /// Builds day title bar.
   final DateWidgetBuilder? dayTitleBuilder;
@@ -331,7 +331,7 @@ class DayViewState<T extends Object?> extends State<DayView<T>> {
 
   late PageController _pageController;
 
-  late DateWidgetBuilder _timeLineBuilder;
+  late TimelineMarkerBuilder _timeLineBuilder;
 
   late EventTileBuilder<T> _eventTileBuilder;
 
@@ -656,8 +656,9 @@ class DayViewState<T extends Object?> extends State<DayView<T>> {
   /// Default timeline builder this builder will be used if
   /// [widget.eventTileBuilder] is null
   ///
-  Widget _defaultTimeLineBuilder(date) => DefaultTimeLineMark(
-      date: date, timeStringBuilder: widget.timeStringBuilder);
+  Widget _defaultTimeLineBuilder(DateTime date, {required int index}) =>
+      DefaultTimeLineMark(
+          date: date, timeStringBuilder: widget.timeStringBuilder);
 
   /// Default timeline builder. This builder will be used if
   /// [widget.eventTileBuilder] is null

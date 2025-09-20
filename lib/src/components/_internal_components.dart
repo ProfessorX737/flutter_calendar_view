@@ -213,7 +213,7 @@ class TimeLine extends StatefulWidget {
   final double timeLineOffset;
 
   /// This will display time string in timeline.
-  final DateWidgetBuilder timeLineBuilder;
+  final TimelineMarkerBuilder timeLineBuilder;
 
   /// Flag to display half hours.
   final bool showHalfHours;
@@ -309,8 +309,9 @@ class _TimeLineState extends State<TimeLine> {
   }
 
   List<Widget> _buildStandardTimeline() {
+    int indexCounter = 0;
     return [
-      for (int i = widget.startHour + 1; i < widget.endHour; i++)
+      for (int i = widget.startHour; i < widget.endHour; i++)
         _timelinePositioned(
           topPosition: widget.hourHeight * (i - widget.startHour) -
               widget.timeLineOffset,
@@ -318,6 +319,7 @@ class _TimeLineState extends State<TimeLine> {
               (widget.hourHeight * (i - widget.startHour + 1)) +
               widget.timeLineOffset,
           hour: i,
+          index: indexCounter++,
         ),
       if (widget.showHalfHours)
         for (int i = widget.startHour; i < widget.endHour; i++)
@@ -330,6 +332,7 @@ class _TimeLineState extends State<TimeLine> {
                 widget.timeLineOffset,
             hour: i,
             minutes: 30,
+            index: indexCounter++,
           ),
       if (widget.showQuarterHours)
         for (int i = 0; i < widget.endHour; i++) ...[
@@ -343,6 +346,7 @@ class _TimeLineState extends State<TimeLine> {
                 widget.timeLineOffset,
             hour: i,
             minutes: 15,
+            index: indexCounter++,
           ),
 
           /// this is for 45 minutes
@@ -355,6 +359,7 @@ class _TimeLineState extends State<TimeLine> {
                 widget.timeLineOffset,
             hour: i,
             minutes: 45,
+            index: indexCounter++,
           ),
         ],
     ];
@@ -367,6 +372,7 @@ class _TimeLineState extends State<TimeLine> {
     final heightPerMinute = widget.height / totalMinutes;
 
     List<Widget> timelineItems = [];
+    int indexCounter = 0;
 
     // Generate timeline markers every hour for the entire duration
     DateTime currentTime = customBoundary.dayStartTime(date);
@@ -376,6 +382,7 @@ class _TimeLineState extends State<TimeLine> {
     timelineItems.add(_customTimelinePositioned(
       topPosition: 0 - widget.timeLineOffset,
       dateTime: currentTime,
+      index: indexCounter++,
     ));
 
     // Move to next hour boundary
@@ -397,6 +404,7 @@ class _TimeLineState extends State<TimeLine> {
       timelineItems.add(_customTimelinePositioned(
         topPosition: topPosition,
         dateTime: currentTime,
+        index: indexCounter++,
       ));
 
       // Add half hour markers if enabled
@@ -414,6 +422,7 @@ class _TimeLineState extends State<TimeLine> {
           timelineItems.add(_customTimelinePositioned(
             topPosition: halfHourTopPosition,
             dateTime: halfHourTime,
+            index: indexCounter++,
           ));
         }
       }
@@ -435,6 +444,7 @@ class _TimeLineState extends State<TimeLine> {
             timelineItems.add(_customTimelinePositioned(
               topPosition: quarterTopPosition,
               dateTime: quarterTime,
+              index: indexCounter++,
             ));
           }
         }
@@ -454,6 +464,7 @@ class _TimeLineState extends State<TimeLine> {
     required double bottomPosition,
     required int hour,
     int minutes = 0,
+    required int index,
   }) {
     return Visibility(
       visible: !((_currentTime.minute >= 45 && _currentTime.hour == hour - 1) ||
@@ -476,6 +487,7 @@ class _TimeLineState extends State<TimeLine> {
               hour,
               minutes,
             ),
+            index: index,
           ),
         ),
       ),
@@ -486,6 +498,7 @@ class _TimeLineState extends State<TimeLine> {
   Widget _customTimelinePositioned({
     required double topPosition,
     required DateTime dateTime,
+    required int index,
   }) {
     return Positioned(
       top: topPosition,
@@ -494,7 +507,7 @@ class _TimeLineState extends State<TimeLine> {
       child: Container(
         height: widget.hourHeight,
         width: widget.timeLineWidth,
-        child: widget.timeLineBuilder.call(dateTime),
+        child: widget.timeLineBuilder.call(dateTime, index: index),
       ),
     );
   }
