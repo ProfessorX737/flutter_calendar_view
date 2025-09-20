@@ -332,7 +332,6 @@ class _InternalDayViewPageState<T extends Object?>
                         widget.liveTimeIndicatorSettings.height > 0)
                       IgnorePointer(
                         child: LiveTimeIndicator(
-                          date: widget.date,
                           liveTimeIndicatorSettings:
                               widget.liveTimeIndicatorSettings,
                           width: widget.width,

@@ -114,7 +114,7 @@ class _WeekViewWidgetState extends State<WeekViewWidget> {
           keepScrollOffset: true,
           heightPerMinute: heightPerMinute,
           customDayBoundary: customDayBoundary,
-          testCurrentTime: DateTime(2025, 9, 13, 1, 0),
+          // testCurrentTime: DateTime(2025, 9, 13, 1, 0),
           dateEventsBuilder: (
               {required DateTime date,
               required double height,

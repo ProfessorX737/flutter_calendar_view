@@ -470,8 +470,6 @@ class _InternalWeekViewPageState<T extends Object?>
                         endHour: widget.endHour,
                         customDayBoundary: widget.customDayBoundary,
                         testCurrentTime: widget.testCurrentTime,
-                        date: DateTime
-                            .now(), // Use current date for live indicator
                       ),
                     widget.weekDecorationBuilder(
                       widthOffset: widget.timeLineWidth +

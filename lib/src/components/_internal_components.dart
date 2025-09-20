@@ -44,9 +44,6 @@ class LiveTimeIndicator extends StatefulWidget {
   /// Custom day boundary that can span across multiple calendar days
   final CustomDayBoundary? customDayBoundary;
 
-  /// The date this indicator is for (required when using customDayBoundary)
-  final DateTime date;
-
   /// Override current time for testing purposes
   final DateTime? testCurrentTime;
 
@@ -61,7 +58,6 @@ class LiveTimeIndicator extends StatefulWidget {
     required this.startHour,
     this.endHour = Constants.hoursADay,
     this.customDayBoundary,
-    required this.date,
     this.testCurrentTime,
   }) : super(key: key);
 
@@ -133,13 +129,14 @@ class _LiveTimeIndicatorState extends State<LiveTimeIndicator> {
   Widget _buildCustomBoundaryIndicators(
       DateTime effectiveTime, String timeString) {
     final boundary = widget.customDayBoundary!;
-    final date = widget.date;
     final indicators = <Widget>[];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
 
     // Calculate all possible positions where this time could appear
     final timeOnly = TimeOfDay.fromDateTime(effectiveTime);
-    final startTime = boundary.dayStartTime(date);
-    final endTime = boundary.dayEndTime(date);
+    final startTime = boundary.dayStartTime(today);
+    final endTime = boundary.dayEndTime(today);
     final startDate = DateTime(startTime.year, startTime.month, startTime.day);
     final endDate = DateTime(endTime.year, endTime.month, endTime.day);
 
@@ -155,9 +152,9 @@ class _LiveTimeIndicatorState extends State<LiveTimeIndicator> {
       );
 
       // Check if this potential time falls within our custom boundary
-      if (boundary.containsTime(date, potentialTime)) {
+      if (boundary.containsTime(today, potentialTime)) {
         final minutesFromStart =
-            boundary.getMinutesFromStart(date, potentialTime);
+            boundary.getMinutesFromStart(today, potentialTime);
         final yOffset = minutesFromStart * widget.heightPerMinute;
 
         // Only show if the offset is within the visible area
