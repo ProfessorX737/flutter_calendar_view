@@ -455,6 +455,7 @@ class _InternalWeekViewPageState<T extends Object?>
                           widget.liveTimeIndicatorSettings,
                       endHour: widget.endHour,
                       customDayBoundary: widget.customDayBoundary,
+                      date: widget.dates.first, // Use first date for timeline
                     ),
                     if (widget.showLiveLine &&
                         widget.liveTimeIndicatorSettings.height > 0)
@@ -469,6 +470,8 @@ class _InternalWeekViewPageState<T extends Object?>
                         endHour: widget.endHour,
                         customDayBoundary: widget.customDayBoundary,
                         testCurrentTime: widget.testCurrentTime,
+                        date: DateTime
+                            .now(), // Use current date for live indicator
                       ),
                     widget.weekDecorationBuilder(
                       widthOffset: widget.timeLineWidth +

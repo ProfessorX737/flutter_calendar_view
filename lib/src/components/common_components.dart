@@ -195,7 +195,8 @@ class DefaultPressDetector extends StatelessWidget {
     if (customDayBoundary != null) {
       // Calculate datetime based on custom boundary
       final totalMinutesFromStart = minuteSlotSize.minutes * slot;
-      return customDayBoundary!.dayStartTime
+      return customDayBoundary!
+          .dayStartTime(date)
           .add(Duration(minutes: totalMinutesFromStart));
     } else {
       // Standard calculation
@@ -207,73 +208,6 @@ class DefaultPressDetector extends StatelessWidget {
         (minuteSlotSize.minutes * slot) + (startHour * 60),
       );
     }
-  }
-}
-
-/// Press detector that works with custom day boundaries that can span multiple calendar days
-class CustomDayBoundaryPressDetector extends StatelessWidget {
-  /// Press detector for custom day boundaries
-  const CustomDayBoundaryPressDetector({
-    Key? key,
-    required this.date,
-    required this.height,
-    required this.width,
-    required this.heightPerMinute,
-    required this.minuteSlotSize,
-    required this.customDayBoundary,
-    this.onDateTap,
-    this.onDateLongPress,
-  }) : super(key: key);
-
-  final DateTime date;
-  final double height;
-  final double width;
-  final double heightPerMinute;
-  final MinuteSlotSize minuteSlotSize;
-  final CustomDayBoundary customDayBoundary;
-  final DateTapCallback? onDateTap;
-  final DatePressCallback? onDateLongPress;
-
-  @override
-  Widget build(BuildContext context) {
-    final heightPerSlot = minuteSlotSize.minutes * heightPerMinute;
-    final totalMinutes = customDayBoundary.totalMinutes;
-    final slots = totalMinutes ~/ minuteSlotSize.minutes;
-
-    return SizedBox(
-      height: height,
-      width: width,
-      child: Stack(
-        children: [
-          for (int i = 0; i < slots; i++)
-            Positioned(
-              top: heightPerSlot * i,
-              left: 0,
-              right: 0,
-              bottom: height - (heightPerSlot * (i + 1)),
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onLongPress: () => onDateLongPress?.call(
-                  getSlotDateTime(i),
-                ),
-                onTap: () => onDateTap?.call(
-                  getSlotDateTime(i),
-                ),
-                child: SizedBox(
-                  width: width,
-                  height: heightPerSlot,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  DateTime getSlotDateTime(int slot) {
-    final minutesFromStart = minuteSlotSize.minutes * slot;
-    return customDayBoundary.dayStartTime
-        .add(Duration(minutes: minutesFromStart));
   }
 }
 

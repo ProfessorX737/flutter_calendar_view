@@ -33,6 +33,7 @@ class MergeEventArranger<T extends Object?> extends EventArranger<T> {
     required double heightPerMinute,
     required int startHour,
     CustomDayBoundary? customDayBoundary,
+    required DateTime date,
   }) {
     // TODO: Right now all the events that are passed in this function must be
     // sorted in ascending order of the start time.
@@ -69,8 +70,8 @@ class MergeEventArranger<T extends Object?> extends EventArranger<T> {
 
       if (customDayBoundary != null) {
         // Use custom day boundary for time calculation
-        eventStart = customDayBoundary.getMinutesFromStart(startTime);
-        eventEnd = customDayBoundary.getMinutesFromStart(endTime);
+        eventStart = customDayBoundary.getMinutesFromStart(date, startTime);
+        eventEnd = customDayBoundary.getMinutesFromStart(date, endTime);
       } else {
         // Use standard hour-based calculation
         // startTime.getTotalMinutes returns the number of minutes from 00h00 to the beginning of the event
@@ -90,10 +91,10 @@ class MergeEventArranger<T extends Object?> extends EventArranger<T> {
         final int arrangedEventStart, arrangedEventEnd;
 
         if (customDayBoundary != null) {
-          arrangedEventStart = customDayBoundary
-              .getMinutesFromStart(arrangedEvents[i].startDuration);
-          arrangedEventEnd = customDayBoundary
-              .getMinutesFromStart(arrangedEvents[i].endDuration);
+          arrangedEventStart = customDayBoundary.getMinutesFromStart(
+              date, arrangedEvents[i].startDuration);
+          arrangedEventEnd = customDayBoundary.getMinutesFromStart(
+              date, arrangedEvents[i].endDuration);
         } else {
           arrangedEventStart = arrangedEvents[i].startDuration.getTotalMinutes;
           arrangedEventEnd = arrangedEvents[i].endDuration.getTotalMinutes == 0
@@ -131,10 +132,10 @@ class MergeEventArranger<T extends Object?> extends EventArranger<T> {
         final int arrangedEventStart, arrangedEventEnd;
 
         if (customDayBoundary != null) {
-          arrangedEventStart = customDayBoundary
-              .getMinutesFromStart(arrangedEventData.startDuration);
-          arrangedEventEnd = customDayBoundary
-              .getMinutesFromStart(arrangedEventData.endDuration);
+          arrangedEventStart = customDayBoundary.getMinutesFromStart(
+              date, arrangedEventData.startDuration);
+          arrangedEventEnd = customDayBoundary.getMinutesFromStart(
+              date, arrangedEventData.endDuration);
         } else {
           arrangedEventStart = arrangedEventData.startDuration.getTotalMinutes;
           arrangedEventEnd = arrangedEventData.endDuration.getTotalMinutes == 0

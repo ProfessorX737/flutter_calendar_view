@@ -340,11 +340,13 @@ class WeekView<T extends Object?> extends StatefulWidget {
           do not provide [onDateLongPress]""",
         ),
         assert(
-          startHour <= 0 || startHour != endHour,
+          customDayBoundary != null || startHour <= 0 || startHour != endHour,
           "startHour must be greater than 0 or startHour should not equal to endHour",
         ),
         assert(
-          endHour <= Constants.hoursADay || endHour < startHour,
+          customDayBoundary != null ||
+              endHour <= Constants.hoursADay ||
+              endHour < startHour,
           "End hour must be less than 24 or startHour must be less than endHour",
         ),
         super(key: key);
@@ -808,28 +810,17 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     required double heightPerMinute,
     required MinuteSlotSize minuteSlotSize,
   }) =>
-      _customDayBoundary != null
-          ? CustomDayBoundaryPressDetector(
-              date: date,
-              height: height,
-              width: width,
-              heightPerMinute: heightPerMinute,
-              minuteSlotSize: minuteSlotSize,
-              onDateTap: widget.onDateTap,
-              onDateLongPress: widget.onDateLongPress,
-              customDayBoundary: _customDayBoundary!.forDate(date),
-            )
-          : DefaultPressDetector(
-              date: date,
-              height: height,
-              width: width,
-              heightPerMinute: heightPerMinute,
-              minuteSlotSize: minuteSlotSize,
-              onDateTap: widget.onDateTap,
-              onDateLongPress: widget.onDateLongPress,
-              startHour: _startHour,
-              customDayBoundary: _customDayBoundary?.forDate(date),
-            );
+      DefaultPressDetector(
+        date: date,
+        height: height,
+        width: width,
+        heightPerMinute: heightPerMinute,
+        minuteSlotSize: minuteSlotSize,
+        onDateTap: widget.onDateTap,
+        onDateLongPress: widget.onDateLongPress,
+        startHour: _startHour,
+        customDayBoundary: _customDayBoundary,
+      );
 
   /// Default builder for week line.
   Widget _defaultWeekDayBuilder(DateTime date) {
@@ -866,7 +857,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   Widget _defaultTimeLineBuilder(DateTime date) => _customDayBoundary != null
       ? CustomDayBoundaryTimeLineMark(
           date: date,
-          customDayBoundary: _customDayBoundary!.forDate(date),
+          customDayBoundary: _customDayBoundary!,
           timeStringBuilder: widget.timeLineStringBuilder,
         )
       : DefaultTimeLineMark(

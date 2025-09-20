@@ -44,6 +44,9 @@ class LiveTimeIndicator extends StatefulWidget {
   /// Custom day boundary that can span across multiple calendar days
   final CustomDayBoundary? customDayBoundary;
 
+  /// The date this indicator is for (required when using customDayBoundary)
+  final DateTime date;
+
   /// Override current time for testing purposes
   final DateTime? testCurrentTime;
 
@@ -58,6 +61,7 @@ class LiveTimeIndicator extends StatefulWidget {
     required this.startHour,
     this.endHour = Constants.hoursADay,
     this.customDayBoundary,
+    required this.date,
     this.testCurrentTime,
   }) : super(key: key);
 
@@ -129,14 +133,15 @@ class _LiveTimeIndicatorState extends State<LiveTimeIndicator> {
   Widget _buildCustomBoundaryIndicators(
       DateTime effectiveTime, String timeString) {
     final boundary = widget.customDayBoundary!;
+    final date = widget.date;
     final indicators = <Widget>[];
 
     // Calculate all possible positions where this time could appear
     final timeOnly = TimeOfDay.fromDateTime(effectiveTime);
-    final startDate = DateTime(boundary.dayStartTime.year,
-        boundary.dayStartTime.month, boundary.dayStartTime.day);
-    final endDate = DateTime(boundary.dayEndTime.year,
-        boundary.dayEndTime.month, boundary.dayEndTime.day);
+    final startTime = boundary.dayStartTime(date);
+    final endTime = boundary.dayEndTime(date);
+    final startDate = DateTime(startTime.year, startTime.month, startTime.day);
+    final endDate = DateTime(endTime.year, endTime.month, endTime.day);
 
     // Check each day within the boundary for potential time matches
     var currentDate = startDate;
@@ -150,8 +155,9 @@ class _LiveTimeIndicatorState extends State<LiveTimeIndicator> {
       );
 
       // Check if this potential time falls within our custom boundary
-      if (boundary.containsTime(potentialTime)) {
-        final minutesFromStart = boundary.getMinutesFromStart(potentialTime);
+      if (boundary.containsTime(date, potentialTime)) {
+        final minutesFromStart =
+            boundary.getMinutesFromStart(date, potentialTime);
         final yOffset = minutesFromStart * widget.heightPerMinute;
 
         // Only show if the offset is within the visible area
@@ -235,6 +241,9 @@ class TimeLine extends StatefulWidget {
   /// Custom day boundary that can span across multiple calendar days
   final CustomDayBoundary? customDayBoundary;
 
+  /// The date this timeline is for (required when using customDayBoundary)
+  final DateTime date;
+
   /// Time line to display time at left side of day or week view.
   const TimeLine({
     Key? key,
@@ -249,6 +258,7 @@ class TimeLine extends StatefulWidget {
     required this.liveTimeIndicatorSettings,
     this.endHour = Constants.hoursADay,
     this.customDayBoundary,
+    required this.date,
   }) : super(key: key);
 
   @override
@@ -355,14 +365,15 @@ class _TimeLineState extends State<TimeLine> {
 
   List<Widget> _buildCustomDayBoundaryTimeline() {
     final customBoundary = widget.customDayBoundary!;
+    final date = widget.date;
     final totalMinutes = customBoundary.totalMinutes;
     final heightPerMinute = widget.height / totalMinutes;
 
     List<Widget> timelineItems = [];
 
     // Generate timeline markers every hour for the entire duration
-    DateTime currentTime = customBoundary.dayStartTime;
-    final endTime = customBoundary.dayEndTime;
+    DateTime currentTime = customBoundary.dayStartTime(date);
+    final endTime = customBoundary.dayEndTime(date);
 
     // Add the first timeline marker at the start time
     timelineItems.add(_customTimelinePositioned(
@@ -381,7 +392,7 @@ class _TimeLineState extends State<TimeLine> {
 
     while (currentTime.isBefore(endTime)) {
       final minutesFromStart =
-          currentTime.difference(customBoundary.dayStartTime).inMinutes;
+          currentTime.difference(customBoundary.dayStartTime(date)).inMinutes;
       final topPosition =
           minutesFromStart * heightPerMinute - widget.timeLineOffset;
 
@@ -394,10 +405,11 @@ class _TimeLineState extends State<TimeLine> {
       // Add half hour markers if enabled
       if (widget.showHalfHours) {
         final halfHourTime = currentTime.subtract(Duration(minutes: 30));
-        if (halfHourTime.isAfter(customBoundary.dayStartTime) &&
+        if (halfHourTime.isAfter(customBoundary.dayStartTime(date)) &&
             halfHourTime.isBefore(endTime)) {
-          final halfHourMinutesFromStart =
-              halfHourTime.difference(customBoundary.dayStartTime).inMinutes;
+          final halfHourMinutesFromStart = halfHourTime
+              .difference(customBoundary.dayStartTime(date))
+              .inMinutes;
           final halfHourTopPosition =
               halfHourMinutesFromStart * heightPerMinute -
                   widget.timeLineOffset;
@@ -414,10 +426,11 @@ class _TimeLineState extends State<TimeLine> {
         for (int quarter in [15, 45]) {
           final quarterTime =
               currentTime.subtract(Duration(minutes: 60 - quarter));
-          if (quarterTime.isAfter(customBoundary.dayStartTime) &&
+          if (quarterTime.isAfter(customBoundary.dayStartTime(date)) &&
               quarterTime.isBefore(endTime)) {
-            final quarterMinutesFromStart =
-                quarterTime.difference(customBoundary.dayStartTime).inMinutes;
+            final quarterMinutesFromStart = quarterTime
+                .difference(customBoundary.dayStartTime(date))
+                .inMinutes;
             final quarterTopPosition =
                 quarterMinutesFromStart * heightPerMinute -
                     widget.timeLineOffset;
@@ -557,7 +570,9 @@ class EventGenerator<T extends Object?> extends StatelessWidget {
         height: height,
         width: width,
         heightPerMinute: heightPerMinute,
-        startHour: startHour);
+        startHour: startHour,
+        customDayBoundary: null,
+        date: date);
 
     return List.generate(events.length, (index) {
       return Positioned(

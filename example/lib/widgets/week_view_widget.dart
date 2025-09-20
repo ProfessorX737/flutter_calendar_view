@@ -19,14 +19,10 @@ class _WeekViewWidgetState extends State<WeekViewWidget> {
   double initialDistance = 0;
   double initialHeightPerMinute = 1;
 
-  // Create a custom day boundary: for today's "day", start at midnight and end 28 hours later (4 AM day after tomorrow)
+  // Create a custom day boundary: start at midnight and end 28 hours later (4 AM day after tomorrow)
   CustomDayBoundary get customDayBoundary {
-    final today = DateTime.now();
-    final targetDate = DateTime(today.year, today.month, today.day);
-
     return CustomDayBoundary(
-      date: targetDate, // Today is the logical "day"
-      startOffset: Duration(hours: 0), // Start at midnight (same day)
+      startOffset: Duration(hours: 0), // Start at midnight
       endOffset:
           Duration(hours: 28), // End 28 hours later (4 AM day after tomorrow)
     );
@@ -35,14 +31,12 @@ class _WeekViewWidgetState extends State<WeekViewWidget> {
     //
     // Night shift (6 PM to 6 AM next day):
     // CustomDayBoundary(
-    //   date: targetDate,
     //   startOffset: Duration(hours: -6), // 6 PM previous day
     //   endOffset: Duration(hours: 6),    // 6 AM same day
     // )
     //
     // Early morning shift (4 AM to 4 AM next day):
     // CustomDayBoundary(
-    //   date: targetDate,
     //   startOffset: Duration(hours: 4),  // 4 AM same day
     //   endOffset: Duration(hours: 28),   // 4 AM next day
     // )
@@ -50,10 +44,11 @@ class _WeekViewWidgetState extends State<WeekViewWidget> {
 
   double _calculateScrollOffset() {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final boundary = customDayBoundary;
 
     // Calculate minutes from the start of the custom day boundary
-    final minutesFromBoundaryStart = boundary.getMinutesFromStart(now);
+    final minutesFromBoundaryStart = boundary.getMinutesFromStart(today, now);
 
     // If current time is before the boundary start, scroll to near the beginning
     if (minutesFromBoundaryStart < 0) {
@@ -297,7 +292,8 @@ class _DateEventsState<T> extends State<DateEvents<T>> {
         width: widget.width,
         heightPerMinute: widget.heightPerMinute,
         startHour: 0,
-        customDayBoundary: widget.customDayBoundary?.forDate(widget.date));
+        customDayBoundary: widget.customDayBoundary,
+        date: widget.date);
 
     return List.generate(arrangedEvents.length, (index) {
       return Positioned(

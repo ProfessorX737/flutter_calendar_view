@@ -31,6 +31,7 @@ class SideEventArranger<T extends Object?> extends EventArranger<T> {
     required double heightPerMinute,
     required int startHour,
     CustomDayBoundary? customDayBoundary,
+    required DateTime date,
   }) {
     final mergedEvents = MergeEventArranger<T>(
       includeEdges: includeEdges,
@@ -41,6 +42,7 @@ class SideEventArranger<T extends Object?> extends EventArranger<T> {
       heightPerMinute: heightPerMinute,
       startHour: startHour,
       customDayBoundary: customDayBoundary,
+      date: date,
     );
 
     final arrangedEvents = <OrganizedCalendarEventData<T>>[];
@@ -110,9 +112,9 @@ class SideEventArranger<T extends Object?> extends EventArranger<T> {
         if (customDayBoundary != null) {
           // Use custom day boundary for positioning
           final startMinutesFromBoundary =
-              customDayBoundary.getMinutesFromStart(startTime);
+              customDayBoundary.getMinutesFromStart(date, startTime);
           final endMinutesFromBoundary =
-              customDayBoundary.getMinutesFromStart(endTime);
+              customDayBoundary.getMinutesFromStart(date, endTime);
 
           top = startMinutesFromBoundary * heightPerMinute;
           bottom = height - (endMinutesFromBoundary * heightPerMinute);

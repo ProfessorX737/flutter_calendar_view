@@ -39,6 +39,7 @@ abstract class EventArranger<T extends Object?> {
     required double heightPerMinute,
     required int startHour,
     CustomDayBoundary? customDayBoundary,
+    required DateTime date,
   });
 }
 
