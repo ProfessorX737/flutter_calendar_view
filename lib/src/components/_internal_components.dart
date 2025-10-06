@@ -396,7 +396,7 @@ class _TimeLineState extends State<TimeLine> {
 
     while (currentTime.isBefore(endTime)) {
       final minutesFromStart =
-          currentTime.difference(customBoundary.dayStartTime(date)).inMinutes;
+          customBoundary.getMinutesFromStart(date, currentTime);
       final topPosition =
           minutesFromStart * heightPerMinute - widget.timeLineOffset;
 
@@ -412,9 +412,8 @@ class _TimeLineState extends State<TimeLine> {
         final halfHourTime = currentTime.subtract(Duration(minutes: 30));
         if (halfHourTime.isAfter(customBoundary.dayStartTime(date)) &&
             halfHourTime.isBefore(endTime)) {
-          final halfHourMinutesFromStart = halfHourTime
-              .difference(customBoundary.dayStartTime(date))
-              .inMinutes;
+          final halfHourMinutesFromStart =
+              customBoundary.getMinutesFromStart(date, halfHourTime);
           final halfHourTopPosition =
               halfHourMinutesFromStart * heightPerMinute -
                   widget.timeLineOffset;
@@ -434,9 +433,8 @@ class _TimeLineState extends State<TimeLine> {
               currentTime.subtract(Duration(minutes: 60 - quarter));
           if (quarterTime.isAfter(customBoundary.dayStartTime(date)) &&
               quarterTime.isBefore(endTime)) {
-            final quarterMinutesFromStart = quarterTime
-                .difference(customBoundary.dayStartTime(date))
-                .inMinutes;
+            final quarterMinutesFromStart =
+                customBoundary.getMinutesFromStart(date, quarterTime);
             final quarterTopPosition =
                 quarterMinutesFromStart * heightPerMinute -
                     widget.timeLineOffset;

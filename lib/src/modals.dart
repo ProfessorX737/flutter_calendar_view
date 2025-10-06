@@ -126,7 +126,22 @@ class CustomDayBoundary {
   }
 
   /// Gets the offset in minutes from the start of this custom day boundary for a specific date
+  /// Uses wall-clock time calculation to handle DST transitions correctly
   int getMinutesFromStart(DateTime date, DateTime dateTime) {
-    return dateTime.difference(dayStartTime(date)).inMinutes;
+    final startOfDay = dayStartTime(date);
+
+    // Calculate day difference (safe to use .difference for date parts)
+    final startDate =
+        DateTime(startOfDay.year, startOfDay.month, startOfDay.day);
+    final endDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    final daysDifference = endDate.difference(startDate).inDays;
+
+    // Calculate wall-clock minutes within each day (handles DST correctly)
+    final minutesFromMidnight = dateTime.hour * 60 + dateTime.minute;
+    final startOffsetMinutes = startOfDay.hour * 60 + startOfDay.minute;
+    final wallClockDifference = minutesFromMidnight - startOffsetMinutes;
+
+    // Combine: (complete days × 24h) + (time difference within day)
+    return daysDifference * 24 * 60 + wallClockDifference;
   }
 }
