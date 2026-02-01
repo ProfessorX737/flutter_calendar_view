@@ -111,14 +111,14 @@ class _FullDayEventHeaderState extends State<FullDayEventHeader> {
               (index) {
                 final fullDayEventList = widget.controller
                     .getFullDayEvent(widget.filteredDates[index]);
+                // Always call the builder - allows custom implementations
+                // to fetch events from external sources (e.g., Riverpod/Firestore)
                 return Container(
                   width: widget.weekTitleWidth,
-                  child: fullDayEventList.isEmpty
-                      ? null
-                      : widget.fullDayEventBuilder.call(
-                          fullDayEventList,
-                          widget.filteredDates[index],
-                        ),
+                  child: widget.fullDayEventBuilder.call(
+                    fullDayEventList,
+                    widget.filteredDates[index],
+                  ),
                 );
               },
             )
