@@ -32,10 +32,10 @@ class FullDayEventHeader<T> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _FullDayEventHeaderState createState() => _FullDayEventHeaderState();
+  _FullDayEventHeaderState<T> createState() => _FullDayEventHeaderState<T>();
 }
 
-class _FullDayEventHeaderState extends State<FullDayEventHeader> {
+class _FullDayEventHeaderState<T> extends State<FullDayEventHeader<T>> {
   bool isScrolledToTop = false;
 
   @override
