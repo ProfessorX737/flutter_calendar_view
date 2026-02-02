@@ -83,6 +83,40 @@ extension DateTimeExtensions on DateTime {
   DateTime lastDayOfWeek({WeekDays start = WeekDays.monday}) =>
       DateTime(year, month, day + (6 - (weekday - start.index - 1) % 7));
 
+  /// Returns list of [numberOfDays] dates starting from this date.
+  /// All dates will be without time.
+  ///
+  /// ex: if Current Date is 8th and numberOfDays is 3, returns [8, 9, 10]
+  List<DateTime> datesOfNDays(int numberOfDays) {
+    return List.generate(
+      numberOfDays,
+      (index) => DateTime(year, month, day + index),
+    );
+  }
+
+  /// Returns the first day of an N-day chunk containing this date.
+  /// The chunk is calculated from [minDate] with [numberOfDays] per chunk.
+  DateTime firstDayOfNDayChunk(
+      {required DateTime minDate, required int numberOfDays}) {
+    final daysSinceMin = getDayDifference(minDate);
+    final chunkIndex = daysSinceMin ~/ numberOfDays;
+    return DateTime(
+        minDate.year, minDate.month, minDate.day + (chunkIndex * numberOfDays));
+  }
+
+  /// Returns the last day of an N-day chunk containing this date.
+  DateTime lastDayOfNDayChunk(
+      {required DateTime minDate, required int numberOfDays}) {
+    final firstDay =
+        firstDayOfNDayChunk(minDate: minDate, numberOfDays: numberOfDays);
+    return DateTime(
+        firstDay.year, firstDay.month, firstDay.day + numberOfDays - 1);
+  }
+
+  /// Gets difference of N-day chunks between [date] and calling object.
+  int getNDayChunkDifference(DateTime date, {required int numberOfDays}) =>
+      (getDayDifference(date) / numberOfDays).floor();
+
   /// Returns list of all dates of [month].
   /// All the dates are week based that means it will return array of size 42
   /// which will contain 6 weeks that is the maximum number of weeks a month
