@@ -498,7 +498,8 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
 
     // Update date range.
     if (widget.minDay != oldWidget.minDay ||
-        widget.maxDay != oldWidget.maxDay) {
+        widget.maxDay != oldWidget.maxDay ||
+        widget.numberOfDays != oldWidget.numberOfDays) {
       _setDateRange();
       _regulateCurrentDate();
 
