@@ -43,9 +43,11 @@ class _FullDayEventHeaderState<T> extends State<FullDayEventHeader<T>> {
     super.initState();
     widget.pageScrollController.addListener(_scrollControllerListener);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      setState(() {
-        isScrolledToTop = widget.pageScrollController.position.pixels == 0;
-      });
+      if (mounted) {
+        setState(() {
+          isScrolledToTop = widget.pageScrollController.position.pixels == 0;
+        });
+      }
     });
   }
 
@@ -56,6 +58,7 @@ class _FullDayEventHeaderState<T> extends State<FullDayEventHeader<T>> {
   }
 
   void _scrollControllerListener() {
+    if (!mounted) return;
     final isPositionZero = widget.pageScrollController.position.pixels == 0;
     if (isPositionZero != isScrolledToTop) {
       setState(() {
