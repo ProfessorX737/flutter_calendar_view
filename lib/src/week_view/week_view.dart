@@ -567,7 +567,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                         }
                         final isCurrentWeek = index == _currentIndex;
                         final key = ValueKey(
-                            '${_width}_${_hourHeight.toString()}_${dates[0].toString()}');
+                            '${widget.numberOfDays}_${_width}_${_hourHeight.toString()}_${dates[0].toString()}');
                         if (!_pageCache.containsKey(key)) {
                           _pageCache.remove(key);
                           _pageCache[key] = ValueListenableBuilder(
