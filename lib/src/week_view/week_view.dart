@@ -502,6 +502,10 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
         widget.numberOfDays != oldWidget.numberOfDays) {
       _setDateRange();
       _regulateCurrentDate();
+      
+      // Clear page cache when numberOfDays changes to ensure pages are
+      // rebuilt with the new weekTitleWidth
+      _pageCache.clear();
 
       // Defer jumpToPage to avoid triggering onPageChange during build phase
       // which can cause issues with state management libraries like Riverpod
