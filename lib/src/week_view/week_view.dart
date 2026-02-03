@@ -503,7 +503,13 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
       _setDateRange();
       _regulateCurrentDate();
 
-      _pageController.jumpToPage(_currentIndex);
+      // Defer jumpToPage to avoid triggering onPageChange during build phase
+      // which can cause issues with state management libraries like Riverpod
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _pageController.jumpToPage(_currentIndex);
+        }
+      });
     }
 
     _eventArranger = widget.eventArranger ?? SideEventArranger<T>();
