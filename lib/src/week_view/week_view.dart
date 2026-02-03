@@ -724,9 +724,12 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     assert(_hourIndicatorSettings.height < _hourHeight,
         "hourIndicator height must be less than minuteHeight * 60");
 
+    // Use numberOfDays for width calculation, not _totalDaysInWeek
+    // _totalDaysInWeek is for filtering which weekdays are enabled,
+    // numberOfDays is how many days are shown per page
     _weekTitleWidth =
         (_width - _timeLineWidth - _hourIndicatorSettings.offset) /
-            _totalDaysInWeek;
+            widget.numberOfDays;
 
     _halfHourIndicatorSettings = widget.halfHourIndicatorSettings ??
         HourIndicatorSettings(
