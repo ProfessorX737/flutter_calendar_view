@@ -29,9 +29,12 @@ class WeekViewDimensions extends InheritedWidget {
     required Widget child,
   }) : super(key: key, child: child);
 
+  static WeekViewDimensions? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<WeekViewDimensions>();
+  }
+
   static WeekViewDimensions of(BuildContext context) {
-    final result =
-        context.dependOnInheritedWidgetOfExactType<WeekViewDimensions>();
+    final result = maybeOf(context);
     assert(result != null, 'No WeekViewDimensions found in context');
     return result!;
   }

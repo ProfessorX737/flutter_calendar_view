@@ -268,11 +268,11 @@ class _InternalWeekViewPageState<T extends Object?>
 
   @override
   Widget build(BuildContext context) {
-    final dims = WeekViewDimensions.of(context);
-    final width = dims.width;
-    final weekTitleWidth = dims.weekTitleWidth;
-    final timeLineWidth = dims.timeLineWidth;
-    final hourIndicatorOffset = dims.hourIndicatorOffset;
+    final dims = WeekViewDimensions.maybeOf(context);
+    final width = dims?.width ?? widget.width;
+    final weekTitleWidth = dims?.weekTitleWidth ?? widget.weekTitleWidth;
+    final timeLineWidth = dims?.timeLineWidth ?? widget.timeLineWidth;
+    final hourIndicatorOffset = dims?.hourIndicatorOffset ?? widget.hourIndicatorSettings.offset;
 
     final filteredDates = _filteredDate();
     return Container(
