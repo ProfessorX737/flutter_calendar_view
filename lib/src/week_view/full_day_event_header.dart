@@ -73,7 +73,6 @@ class _FullDayEventHeaderState<T> extends State<FullDayEventHeader<T>> {
       width: widget.width,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.transparent,
           border: Border(
             bottom: BorderSide(
               color: Colors.black.withOpacity(0.1),
