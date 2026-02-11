@@ -81,13 +81,14 @@ class _FullDayEventHeaderState<T> extends State<FullDayEventHeader<T>> {
             ),
           ),
           boxShadow: [
-            if (!isScrolledToTop)
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                spreadRadius: 1,
-                blurRadius: 1,
-                offset: Offset(0, 1), // changes position of shadow
-              ),
+            // Shadow disabled to prevent grey background appearance
+            // if (!isScrolledToTop)
+            //   BoxShadow(
+            //     color: Colors.black.withOpacity(0.05),
+            //     spreadRadius: 1,
+            //     blurRadius: 1,
+            //     offset: Offset(0, 1), // changes position of shadow
+            //   ),
           ],
         ),
         child: Row(
