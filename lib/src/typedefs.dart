@@ -48,6 +48,16 @@ typedef WeekNumberBuilder = Widget? Function(
 typedef FullDayEventBuilder<T> = Widget Function(
     List<CalendarEventData<T>> events, DateTime date);
 
+/// Builder that replaces the entire full-day event header row in [WeekView].
+/// When provided, [FullDayEventBuilder] is ignored.
+/// This allows rendering multi-day event bars that span across day columns.
+typedef FullDayRowBuilder<T> = Widget Function({
+  required List<DateTime> dates,
+  required double weekTitleWidth,
+  required double leftOffset,
+  required ScrollController scrollController,
+});
+
 typedef CalendarPageChangeCallBack = void Function(DateTime date, int page);
 
 typedef PageChangeCallback = void Function(

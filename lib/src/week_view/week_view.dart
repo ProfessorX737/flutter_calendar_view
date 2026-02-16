@@ -206,6 +206,10 @@ class WeekView<T extends Object?> extends StatefulWidget {
   /// Display full day event builder.
   final FullDayEventBuilder<T>? fullDayEventBuilder;
 
+  /// Builder that replaces the entire full-day event header row.
+  /// When provided, [fullDayEventBuilder] is ignored.
+  final FullDayRowBuilder<T>? fullDayRowBuilder;
+
   /// First hour displayed in the layout, goes from 0 to 24
   final int startHour;
 
@@ -321,6 +325,7 @@ class WeekView<T extends Object?> extends StatefulWidget {
     this.headerStyle = const HeaderStyle(),
     this.safeAreaOption = const SafeAreaOption(),
     this.fullDayEventBuilder,
+    this.fullDayRowBuilder,
     this.startHour = 0,
     this.onHeaderTitleTap,
     this.showHalfHours = false,
@@ -401,6 +406,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   late DateWidgetBuilder _weekDayBuilder;
   late WeekNumberBuilder _weekNumberBuilder;
   late FullDayEventBuilder<T> _fullDayEventBuilder;
+  FullDayRowBuilder<T>? _fullDayRowBuilder;
   late DetectorBuilder _weekDetectorBuilder;
   late FullDayHeaderTextConfig _fullDayHeaderTextConfig;
 
@@ -638,6 +644,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                                   minuteSlotSize: widget.minuteSlotSize,
                                   scrollConfiguration: _scrollConfiguration,
                                   fullDayEventBuilder: _fullDayEventBuilder,
+                                  fullDayRowBuilder: _fullDayRowBuilder,
                                   startHour: _startHour,
                                   showHalfHours: widget.showHalfHours,
                                   showQuarterHours: widget.showQuarterHours,
@@ -781,6 +788,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     _weekNumberBuilder = widget.weekNumberBuilder ?? _defaultWeekNumberBuilder;
     _fullDayEventBuilder =
         widget.fullDayEventBuilder ?? _defaultFullDayEventBuilder;
+    _fullDayRowBuilder = widget.fullDayRowBuilder;
     _hourLinePainter = widget.hourLinePainter ?? _defaultHourLinePainter;
   }
 

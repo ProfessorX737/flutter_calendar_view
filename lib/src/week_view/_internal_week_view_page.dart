@@ -127,6 +127,9 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
   /// Display full day events.
   final FullDayEventBuilder<T> fullDayEventBuilder;
 
+  /// When non-null, replaces the entire FullDayEventHeader widget.
+  final FullDayRowBuilder<T>? fullDayRowBuilder;
+
   final ScrollController weekViewScrollController;
 
   final ScrollController pageScrollController;
@@ -211,6 +214,7 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
     required this.scrollConfiguration,
     required this.startHour,
     required this.fullDayEventBuilder,
+    this.fullDayRowBuilder,
     required this.weekDetectorBuilder,
     required this.showWeekDayAtBottom,
     required this.showHalfHours,
@@ -307,18 +311,26 @@ class _InternalWeekViewPageState<T extends Object?>
               ],
             ),
           ),
-          FullDayEventHeader<T>(
-            width: width,
-            timeLineWidth: timeLineWidth,
-            hourIndicatorSettings: widget.hourIndicatorSettings,
-            fullDayHeaderTitle: widget.fullDayHeaderTitle,
-            fullDayHeaderTextConfig: widget.fullDayHeaderTextConfig,
-            filteredDates: filteredDates,
-            controller: widget.controller,
-            fullDayEventBuilder: widget.fullDayEventBuilder,
-            weekTitleWidth: weekTitleWidth,
-            pageScrollController: widget.pageScrollController,
-          ),
+          if (widget.fullDayRowBuilder != null)
+            widget.fullDayRowBuilder!(
+              dates: filteredDates,
+              weekTitleWidth: weekTitleWidth,
+              leftOffset: timeLineWidth + hourIndicatorOffset,
+              scrollController: widget.pageScrollController,
+            )
+          else
+            FullDayEventHeader<T>(
+              width: width,
+              timeLineWidth: timeLineWidth,
+              hourIndicatorSettings: widget.hourIndicatorSettings,
+              fullDayHeaderTitle: widget.fullDayHeaderTitle,
+              fullDayHeaderTextConfig: widget.fullDayHeaderTextConfig,
+              filteredDates: filteredDates,
+              controller: widget.controller,
+              fullDayEventBuilder: widget.fullDayEventBuilder,
+              weekTitleWidth: weekTitleWidth,
+              pageScrollController: widget.pageScrollController,
+            ),
           Expanded(
             child: widget.scrollViewBuilder(
               controller: widget.keepScrollOffset
