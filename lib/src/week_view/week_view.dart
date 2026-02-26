@@ -262,6 +262,12 @@ class WeekView<T extends Object?> extends StatefulWidget {
   /// - Date range calculations
   final int numberOfDays;
 
+  /// When true, anchors the view so that [initialDay] (defaults to today)
+  /// is always the first column. Applies to all [numberOfDays] values
+  /// including 7-day views. When false, 7-day views use week boundaries
+  /// (Mon–Sun) and other views use epoch-aligned chunks.
+  final bool anchorToToday;
+
   /// Title of the full day events row
   final String fullDayHeaderTitle;
 
@@ -341,6 +347,7 @@ class WeekView<T extends Object?> extends StatefulWidget {
     this.fullDayHeaderTextConfig,
     this.keepScrollOffset = false,
     this.numberOfDays = 7,
+    this.anchorToToday = false,
   })  : assert(!(onHeaderTitleTap != null && weekPageHeaderBuilder != null),
             "can't use [onHeaderTitleTap] & [weekPageHeaderBuilder] simultaneously"),
         assert((timeLineOffset) >= 0,
@@ -505,7 +512,8 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     // Update date range.
     if (widget.minDay != oldWidget.minDay ||
         widget.maxDay != oldWidget.maxDay ||
-        widget.numberOfDays != oldWidget.numberOfDays) {
+        widget.numberOfDays != oldWidget.numberOfDays ||
+        widget.anchorToToday != oldWidget.anchorToToday) {
       _setDateRange();
       _regulateCurrentDate();
       
@@ -571,7 +579,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                       onPageChanged: _onPageChange,
                       itemBuilder: (_, index) {
                         final List<DateTime> dates;
-                        if (widget.numberOfDays == 7) {
+                        if (!widget.anchorToToday && widget.numberOfDays == 7) {
                           // Standard week view - use week alignment
                           dates = DateTime(_minDate.year, _minDate.month,
                                   _minDate.day + (index * DateTime.daysPerWeek))
@@ -819,7 +827,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
       _currentWeek = _maxDate;
     }
 
-    if (widget.numberOfDays == 7) {
+    if (!widget.anchorToToday && widget.numberOfDays == 7) {
       // Standard week view - align to week boundaries
       _currentStartDate = _currentWeek.firstDayOfWeek(start: widget.startDay);
       _currentEndDate = _currentWeek.lastDayOfWeek(start: widget.startDay);
@@ -839,8 +847,8 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
   /// Sets the minimum and maximum dates for current view.
   void _setDateRange() {
     // For standard 7-day week view, align to week boundaries
-    // For N-day view, use the provided dates directly
-    if (widget.numberOfDays == 7) {
+    // For N-day view (or anchorToToday), use the provided dates directly
+    if (!widget.anchorToToday && widget.numberOfDays == 7) {
       _minDate = (widget.minDay ?? CalendarConstants.epochDate)
           .firstDayOfWeek(start: widget.startDay)
           .withoutTime;
@@ -851,6 +859,17 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     } else {
       _minDate =
           (widget.minDay ?? CalendarConstants.epochDate).withoutTime;
+
+      // Align _minDate so initialDay falls on a chunk boundary
+      if (widget.anchorToToday) {
+        final anchor = (widget.initialDay ?? DateTime.now()).withoutTime;
+        final remainder =
+            anchor.getDayDifference(_minDate) % widget.numberOfDays;
+        if (remainder != 0) {
+          _minDate = DateTime(
+              _minDate.year, _minDate.month, _minDate.day + remainder);
+        }
+      }
 
       _maxDate = (widget.maxDay ?? CalendarConstants.maxDate).withoutTime;
     }
@@ -1076,7 +1095,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     if (week.isBefore(_minDate) || week.isAfter(_maxDate)) {
       throw "Invalid date selected.";
     }
-    final pageIndex = widget.numberOfDays == 7
+    final pageIndex = !widget.anchorToToday && widget.numberOfDays == 7
         ? _minDate.getWeekDifference(week, start: widget.startDay)
         : week.getNDayChunkDifference(_minDate,
             numberOfDays: widget.numberOfDays);
@@ -1093,7 +1112,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     if (week.isBefore(_minDate) || week.isAfter(_maxDate)) {
       throw "Invalid date selected.";
     }
-    final pageIndex = widget.numberOfDays == 7
+    final pageIndex = !widget.anchorToToday && widget.numberOfDays == 7
         ? _minDate.getWeekDifference(week, start: widget.startDay)
         : week.getNDayChunkDifference(_minDate,
             numberOfDays: widget.numberOfDays);
