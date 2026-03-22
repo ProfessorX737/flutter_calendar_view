@@ -639,6 +639,8 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
                                   showLiveLine:
                                       widget.showLiveTimeLineInAllDays ||
                                           _showLiveTimeIndicator(dates),
+                                  showLiveTimeLineInAllDays:
+                                      widget.showLiveTimeLineInAllDays,
                                   timeLineOffset: widget.timeLineOffset,
                                   timeLineWidth: _timeLineWidth,
                                   verticalLineOffset: 0,

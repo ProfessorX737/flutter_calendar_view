@@ -52,6 +52,10 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
   /// Flag to display live line.
   final bool showLiveLine;
 
+  /// When true, the live time indicator spans all day columns.
+  /// When false, it only spans today's column.
+  final bool showLiveTimeLineInAllDays;
+
   /// Settings for live time indicator.
   final LiveTimeIndicatorSettings liveTimeIndicatorSettings;
 
@@ -196,6 +200,7 @@ class InternalWeekViewPage<T extends Object?> extends StatefulWidget {
     required this.halfHourIndicatorSettings,
     required this.quarterHourIndicatorSettings,
     required this.showLiveLine,
+    this.showLiveTimeLineInAllDays = true,
     required this.liveTimeIndicatorSettings,
     required this.heightPerMinute,
     required this.timeLineWidth,
@@ -459,17 +464,12 @@ class _InternalWeekViewPageState<T extends Object?>
                     ),
                     if (widget.showLiveLine &&
                         widget.liveTimeIndicatorSettings.height > 0)
-                      LiveTimeIndicator(
-                        liveTimeIndicatorSettings:
-                            widget.liveTimeIndicatorSettings,
+                      ..._buildLiveTimeIndicators(
+                        filteredDates: filteredDates,
                         width: width,
-                        height: widget.height,
-                        heightPerMinute: widget.heightPerMinute,
+                        weekTitleWidth: weekTitleWidth,
                         timeLineWidth: timeLineWidth,
-                        startHour: widget.startHour,
-                        endHour: widget.endHour,
-                        customDayBoundary: widget.customDayBoundary,
-                        testCurrentTime: widget.testCurrentTime,
+                        hourIndicatorOffset: hourIndicatorOffset,
                       ),
                     widget.weekDecorationBuilder(
                       widthOffset: timeLineWidth + hourIndicatorOffset,
@@ -487,6 +487,70 @@ class _InternalWeekViewPageState<T extends Object?>
         ],
       ),
     );
+  }
+
+  /// Builds the live time indicator widget(s).
+  ///
+  /// When [showLiveTimeLineInAllDays] is true, a single indicator spans the
+  /// full page width (original behaviour). When false, the indicator is
+  /// clipped to only today's column.
+  List<Widget> _buildLiveTimeIndicators({
+    required List<DateTime> filteredDates,
+    required double width,
+    required double weekTitleWidth,
+    required double timeLineWidth,
+    required double hourIndicatorOffset,
+  }) {
+    if (widget.showLiveTimeLineInAllDays) {
+      // Original behaviour – span the full width.
+      return [
+        LiveTimeIndicator(
+          liveTimeIndicatorSettings: widget.liveTimeIndicatorSettings,
+          width: width,
+          height: widget.height,
+          heightPerMinute: widget.heightPerMinute,
+          timeLineWidth: timeLineWidth,
+          startHour: widget.startHour,
+          endHour: widget.endHour,
+          customDayBoundary: widget.customDayBoundary,
+          testCurrentTime: widget.testCurrentTime,
+        ),
+      ];
+    }
+
+    // Find today's column index.
+    final now = widget.testCurrentTime ?? DateTime.now();
+    final todayIndex = filteredDates.indexWhere(
+      (d) => d.year == now.year && d.month == now.month && d.day == now.day,
+    );
+    if (todayIndex == -1) return [];
+
+    final columnLeft =
+        timeLineWidth + hourIndicatorOffset + todayIndex * weekTitleWidth;
+
+    return [
+      Positioned(
+        left: columnLeft,
+        top: 0,
+        bottom: 0,
+        child: ClipRect(
+          child: SizedBox(
+            width: weekTitleWidth,
+            child: LiveTimeIndicator(
+              liveTimeIndicatorSettings: widget.liveTimeIndicatorSettings,
+              width: weekTitleWidth,
+              height: widget.height,
+              heightPerMinute: widget.heightPerMinute,
+              timeLineWidth: 0,
+              startHour: widget.startHour,
+              endHour: widget.endHour,
+              customDayBoundary: widget.customDayBoundary,
+              testCurrentTime: widget.testCurrentTime,
+            ),
+          ),
+        ),
+      ),
+    ];
   }
 
   List<DateTime> _filteredDate() {
