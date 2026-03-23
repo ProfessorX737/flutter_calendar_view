@@ -525,23 +525,24 @@ class _InternalWeekViewPageState<T extends Object?>
     );
     if (todayIndex == -1) return [];
 
+    final bulletRadius = widget.liveTimeIndicatorSettings.bulletRadius;
     final columnLeft =
         timeLineWidth + hourIndicatorOffset + todayIndex * weekTitleWidth;
 
     return [
       Positioned(
-        left: columnLeft,
+        left: columnLeft - bulletRadius,
         top: 0,
         bottom: 0,
         child: ClipRect(
           child: SizedBox(
-            width: weekTitleWidth,
+            width: weekTitleWidth + bulletRadius,
             child: LiveTimeIndicator(
               liveTimeIndicatorSettings: widget.liveTimeIndicatorSettings,
-              width: weekTitleWidth,
+              width: weekTitleWidth + bulletRadius,
               height: widget.height,
               heightPerMinute: widget.heightPerMinute,
-              timeLineWidth: 0,
+              timeLineWidth: bulletRadius,
               startHour: widget.startHour,
               endHour: widget.endHour,
               customDayBoundary: widget.customDayBoundary,
