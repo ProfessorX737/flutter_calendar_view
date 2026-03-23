@@ -526,8 +526,15 @@ class _InternalWeekViewPageState<T extends Object?>
     if (todayIndex == -1) return [];
 
     final bulletRadius = widget.liveTimeIndicatorSettings.bulletRadius;
+    final indicatorOffset = widget.liveTimeIndicatorSettings.offset;
     final columnLeft =
         timeLineWidth + hourIndicatorOffset + todayIndex * weekTitleWidth;
+
+    // The painter draws the bullet at (timeLineWidth + indicatorOffset).
+    // We want the bullet centred on the column's left line, so we set
+    // timeLineWidth such that timeLineWidth + indicatorOffset = bulletRadius
+    // (the bullet's centre within the clipped container).
+    final indicatorTimeLineWidth = bulletRadius - indicatorOffset;
 
     return [
       Positioned(
@@ -542,7 +549,7 @@ class _InternalWeekViewPageState<T extends Object?>
               width: weekTitleWidth + bulletRadius,
               height: widget.height,
               heightPerMinute: widget.heightPerMinute,
-              timeLineWidth: bulletRadius,
+              timeLineWidth: indicatorTimeLineWidth,
               startHour: widget.startHour,
               endHour: widget.endHour,
               customDayBoundary: widget.customDayBoundary,
