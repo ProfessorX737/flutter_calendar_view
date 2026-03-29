@@ -409,7 +409,8 @@ class _InternalWeekViewPageState<T extends Object?>
                               filteredDates.length,
                               (index) => RepaintBoundary(
                                 child: Container(
-                                  decoration: widget.showVerticalLine
+                                  decoration: widget.showVerticalLine &&
+                                          index < filteredDates.length - 1
                                       ? BoxDecoration(
                                           border: Border(
                                             right: BorderSide(

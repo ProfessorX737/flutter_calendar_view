@@ -128,6 +128,11 @@ class WeekView<T extends Object?> extends StatefulWidget {
   /// Width of week view. If null provided device width will be considered.
   final double? width;
 
+  /// Width reserved on the right for overlay scrollbar on desktop.
+  /// Subtracted from the column-area so columns don't extend under the
+  /// scrollbar.
+  final double scrollbarReservedWidth;
+
   /// If true this will display vertical lines between each day.
   final bool showVerticalLines;
 
@@ -348,6 +353,7 @@ class WeekView<T extends Object?> extends StatefulWidget {
     this.keepScrollOffset = false,
     this.numberOfDays = 7,
     this.anchorToToday = false,
+    this.scrollbarReservedWidth = 0,
   })  : assert(!(onHeaderTitleTap != null && weekPageHeaderBuilder != null),
             "can't use [onHeaderTitleTap] & [weekPageHeaderBuilder] simultaneously"),
         assert((timeLineOffset) >= 0,
@@ -756,7 +762,7 @@ class WeekViewState<T extends Object?> extends State<WeekView<T>> {
     // _totalDaysInWeek is for filtering which weekdays are enabled,
     // numberOfDays is how many days are shown per page
     _weekTitleWidth =
-        (_width - _timeLineWidth - _hourIndicatorSettings.offset) /
+        (_width - _timeLineWidth - _hourIndicatorSettings.offset - widget.scrollbarReservedWidth) /
             widget.numberOfDays;
 
     _halfHourIndicatorSettings = widget.halfHourIndicatorSettings ??
