@@ -399,8 +399,11 @@ class _InternalWeekViewPageState<T extends Object?>
                         ),
                       ),
                     Align(
-                      alignment: Alignment.centerRight,
-                      child: SizedBox(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            left: timeLineWidth + hourIndicatorOffset),
+                        child: SizedBox(
                         width: weekTitleWidth * filteredDates.length,
                         height: widget.height,
                         child: Row(
@@ -446,6 +449,7 @@ class _InternalWeekViewPageState<T extends Object?>
                             )
                           ],
                         ),
+                      ),
                       ),
                     ),
                     TimeLine(
