@@ -125,3 +125,9 @@ typedef WeekDecorationBuilder = Widget Function({
   required double height,
   required List<DateTime> dates,
 });
+
+/// Builds the full body of a month page (everything below the header) for
+/// [month] — the first day of the displayed month. When provided to
+/// [MonthView.monthPageBuilder], it replaces the default weekday tile row and
+/// cell grid, giving the caller full control of the page layout.
+typedef MonthPageBuilder = Widget Function(BuildContext context, DateTime month);

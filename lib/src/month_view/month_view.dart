@@ -170,6 +170,12 @@ class MonthView<T extends Object?> extends StatefulWidget {
   /// defines that show and hide cell not is in current month
   final bool hideDaysNotInMonth;
 
+  /// When provided, builds the entire body of each month page (everything
+  /// below the header), replacing the default weekday tile row and cell grid.
+  /// The callback receives the first day of the page's month. Paging,
+  /// [onPageChange], and the jump/animate APIs keep working unchanged.
+  final MonthPageBuilder? monthPageBuilder;
+
   /// Main [Widget] to display month view.
   const MonthView({
     Key? key,
@@ -205,6 +211,7 @@ class MonthView<T extends Object?> extends StatefulWidget {
     this.onEventDoubleTap,
     this.showWeekTileBorder = true,
     this.hideDaysNotInMonth = false,
+    this.monthPageBuilder,
   })  : assert(!(onHeaderTitleTap != null && headerBuilder != null),
             "can't use [onHeaderTitleTap] & [headerBuilder] simultaneously"),
         super(key: key);
@@ -338,6 +345,11 @@ class MonthViewState<T extends Object?> extends State<MonthView<T>> {
                 onPageChanged: _onPageChange,
                 itemBuilder: (_, index) {
                   final date = DateTime(_minDate.year, _minDate.month + index);
+
+                  if (widget.monthPageBuilder != null) {
+                    return widget.monthPageBuilder!(context, date);
+                  }
+
                   final weekDays = date.datesOfWeek(start: widget.startDay);
 
                   return Column(
